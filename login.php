@@ -1,10 +1,11 @@
 <?php
 // File: login.php
-require_once 'auth_handlers.php';
+require_once 'session_check.php'; // Změna na session_check, který inicializuje $auth
+global $auth; // Zpřístupnění globální instance $auth
 
 // Redirect if already logged in
-if (isLoggedIn()) {
-    header("Location: " . (isAdmin() ? 'admin.php' : 'index.php'));
+if ($auth->isLoggedIn()) {
+    header("Location: " . ($auth->isAdmin() ? 'admin.php' : 'index.php'));
     exit;
 }
 
@@ -28,7 +29,7 @@ if (isset($_GET['success'])) {
     <title>Přihlášení | CineBukay</title>
     <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/vestylu.css">
-    <link rel="stylesheet" href="./css/login.css">
+    <!-- Link na login.css odstraněn, styly jsou v vestylu.css -->
 </head>
 <body>
     <header class="site-header">

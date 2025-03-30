@@ -35,9 +35,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Načtení filmů
             async function loadMovies() {
+                // Zobrazit loading indikátor
+                const loadingIndicator = document.getElementById('loading');
+                const moviesWrapper = document.getElementById('movies-wrapper');
+                const noResultsDiv = document.getElementById('no-results');
+                loadingIndicator.style.display = 'flex';
+                moviesWrapper.style.display = 'none';
+                noResultsDiv.style.display = 'none';
+
                 try {
-                    const response = await fetch('movie_handlers.php');
+                    // Použít api_endpoint.php
+                    const response = await fetch('api_endpoint.php');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
                     const movies = await response.json();
+
+                    // Skrýt loading indikátor
+                    loadingIndicator.style.display = 'none';
+                    moviesWrapper.style.display = ''; // Zobrazit wrapper (bude grid nebo flex podle CSS)
+
+                    // Zpracování odpovědi - může obsahovat 'status' => 'error'
+                    if (movies.status === 'error') {
+                        console.error('Chyba při načítání filmů:', movies.message);
+                        showError('Nepodařilo se načíst filmy: ' + movies.message);
+                        handleNoResults(0); // Zobrazit "žádné výsledky"
+                        return;
+                    }
 
                     if (Array.isArray(movies)) {
                         updateMoviesUI(movies);
@@ -73,9 +97,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const times = formatTimes(movie.screening_time);
                 const dateRange = formatDateRange(movie.screening_date);
 
+                // Použití base64 obrázku z api_endpoint.php
+                const imgSrc = movie.image ? `data:image/jpeg;base64,${movie.image}` : 'https://via.placeholder.com/260x390?text=No+Image'; // Placeholder if no image
+
                 card.innerHTML = `
             <div class="movie-image">
-                <img src="data:image/jpeg;base64,${movie.image}" alt="${movie.title}">
+                <img src="${imgSrc}" alt="${movie.title}">
                 <div class="desktop-reserve">
                     ${isPast ? 
                         '<span class="ended-label">Projekce skončila</span>' :
@@ -150,22 +177,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Zobrazení/skrytí zprávy o nenalezených filmech
     function handleNoResults(visibleCount) {
-        let noResultsMsg = document.getElementById('no-results-message');
-        
+        const noResultsDiv = document.getElementById('no-results');
         if (visibleCount === 0) {
-            if (!noResultsMsg) {
-                noResultsMsg = document.createElement('div');
-                noResultsMsg.id = 'no-results-message';
-                noResultsMsg.className = 'no-results';
-                noResultsMsg.innerHTML = `
-                    <div class="no-results-icon">&#128269;</div>
-                    <h3>Žádné filmy nenalezeny</h3>
-                    <p>Zkuste upravit vaše hledání nebo filtr.</p>
-                `;
-                moviesWrapper.appendChild(noResultsMsg);
-            }
-        } else if (noResultsMsg) {
-            noResultsMsg.remove();
+            noResultsDiv.style.display = 'flex'; // Použít existující div
+            moviesWrapper.style.display = 'none'; // Skrýt wrapper, pokud nejsou výsledky
+        } else {
+            noResultsDiv.style.display = 'none';
+            moviesWrapper.style.display = ''; // Zobrazit wrapper (bude grid nebo flex podle CSS)
         }
     }
 

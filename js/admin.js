@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const genreTags = document.getElementById('genre-tags');
             const imageUpload = document.getElementById('image-upload');
             const movieImage = document.getElementById('movie-image');
+            const movieIdInput = document.getElementById('movie-id'); // Skryté pole pro ID
+            const modalTitle = movieModal.querySelector('.modal-title'); // Nadpis modalu
+
+            let allMoviesData = []; // Pole pro uložení načtených dat filmů
 
             // Načtení filmů při startu
             loadMovies();
@@ -24,12 +28,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.addEventListener('click', closeModals);
             });
 
-            // Odeslání formuláře
+            // Odeslání formuláře (Add / Update)
             movieForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
                 const formData = new FormData();
-                formData.append('action', 'add');
+                const movieId = movieIdInput.value;
+                const formAction = movieId ? 'update' : 'add'; // Rozlišení akce
+
+                formData.append('action', formAction);
+                if (movieId) {
+                    formData.append('id', movieId); // Přidat ID pro update
+                }
 
                 // Základní údaje
                 const title = document.getElementById('movie-title').value;
@@ -64,14 +74,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 formData.append('screening_time', JSON.stringify(times));
 
-                // Debug výpis
-                console.log('Odesílaná data:');
-                for (let [key, value] of formData.entries()) {
-                    console.log(`${key}: ${value}`);
+                // Přidání obrázku do FormData, pokud byl vybrán
+                const imageInput = document.getElementById('movie-image');
+                const imagePreview = imageUpload.querySelector('img');
+                if (imageInput.files[0]) {
+                    // Pokud je soubor, čteme ho jako base64
+                    const reader = new FileReader();
+                    reader.readAsDataURL(imageInput.files[0]);
+                    await new Promise((resolve, reject) => {
+                        reader.onload = () => {
+                            formData.append('image', reader.result); // Odeslat jako base64 data URI
+                            resolve();
+                        };
+                        reader.onerror = reject;
+                    });
+                } else if (imagePreview && imagePreview.src.startsWith('data:image')) {
+                    // Pokud není nový soubor, ale je náhled (při úpravě), pošli stávající base64
+                    formData.append('image', imagePreview.src);
                 }
 
+
+                // Debug výpis - POZOR: Může logovat base64 obrázek!
+                // console.log('Odesílaná data:', Object.fromEntries(formData));
+
                 try {
-                    const response = await fetch('movie_handlers.php', {
+                    // Použít api_endpoint.php
+                    const response = await fetch('api_endpoint.php', {
                         method: 'POST',
                         body: formData
                     });
@@ -86,13 +114,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (result.status === 'success') {
                         alert(result.message);
                         closeModals();
-                        loadMovies();
+                        loadMovies(); // Znovu načíst po úspěšné akci
                     } else {
-                        throw new Error(result.message);
+                        throw new Error(result.message || 'Neznámá chyba serveru.');
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert(`Chyba při ukládání filmu: ${error.message}`);
+                    alert(`Chyba při ${formAction === 'add' ? 'přidávání' : 'aktualizaci'} filmu: ${error.message}`);
                 }
             });
 
@@ -169,19 +197,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
 
-            // Načtení filmů z API
+            // Načtení filmů z API (api_endpoint.php)
             async function loadMovies() {
+                // Zobrazit loading indikátor (předpokládáme existenci #movies-loading)
+                const loadingIndicator = document.getElementById('movies-loading');
+                const tableBody = document.querySelector('.admin-table tbody');
+                const cardsContainer = document.querySelector('.movies-cards');
+                if (loadingIndicator) loadingIndicator.style.display = 'block';
+                if (tableBody) tableBody.innerHTML = ''; // Vyčistit před načítáním
+                if (cardsContainer) cardsContainer.innerHTML = ''; // Vyčistit před načítáním
+
                 try {
-                    const response = await fetch('movie_handlers.php');
+                    const response = await fetch('api_endpoint.php'); // Použít správný endpoint
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
                     const movies = await response.json();
+                    allMoviesData = movies; // Uložit data pro pozdější použití (edit)
+
+                    if (loadingIndicator) loadingIndicator.style.display = 'none'; // Skrýt loading
+
+                    // Zpracování odpovědi - může obsahovat 'status' => 'error'
+                    if (movies.status === 'error') {
+                        console.error('Chyba při načítání filmů:', movies.message);
+                        alert('Nepodařilo se načíst filmy: ' + movies.message);
+                        return;
+                    }
 
                     if (Array.isArray(movies)) {
                         updateMoviesUI(movies);
                     } else {
                         console.error('Neplatná odpověď ze serveru:', movies);
+                        alert('Obdržena neplatná odpověď ze serveru.');
                     }
                 } catch (error) {
                     console.error('Chyba při načítání filmů:', error);
+                    alert('Chyba při komunikaci se serverem při načítání filmů.');
+                    if (loadingIndicator) loadingIndicator.style.display = 'none'; // Skrýt loading i při chybě
                 }
             }
 
@@ -257,7 +309,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
-                editMovie(id);
+                // Najít data filmu v uloženém poli
+                const movieData = allMoviesData.find(movie => movie.id_screening == id);
+                if (movieData) {
+                    editMovie(movieData);
+                } else {
+                    alert('Data filmu pro úpravu nebyla nalezena.');
+                    // Alternativně: Zavolat API pro načtení detailu filmu podle ID
+                }
             });
         });
 
@@ -265,11 +324,80 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
-                const title = this.closest('tr, .movie-card')
-                    .querySelector('.movie-title, .movie-name-with-image span').textContent;
+                // Najít název filmu bezpečněji
+                const cardOrRow = this.closest('tr') || this.closest('.movie-card');
+                let title = 'tento film';
+                if (cardOrRow) {
+                     const titleElement = cardOrRow.querySelector('.movie-title') || cardOrRow.querySelector('.movie-name-with-image span');
+                     if (titleElement) {
+                         title = titleElement.textContent.trim();
+                     }
+                }
                 showDeleteConfirmation(id, title);
             });
         });
+    }
+
+    // Zobrazení potvrzení smazání
+    function showDeleteConfirmation(id, title) {
+        const deleteModal = document.getElementById('delete-modal');
+        const movieNameSpan = document.getElementById('delete-movie-name');
+        const confirmBtn = deleteModal.querySelector('.confirm-btn');
+        const cancelBtn = deleteModal.querySelector('.cancel-btn'); // Přidáno pro odpojení listeneru
+        const closeBtn = deleteModal.querySelector('.close-btn'); // Přidáno pro odpojení listeneru
+
+        if (!deleteModal || !movieNameSpan || !confirmBtn || !cancelBtn || !closeBtn) {
+            console.error('Chybí elementy v delete modalu!');
+            return;
+        }
+
+        movieNameSpan.textContent = title;
+
+        // Odstranit starý listener, aby se neduplikoval
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        
+        // Přidat nový listener
+        newConfirmBtn.addEventListener('click', () => deleteMovie(id));
+
+        // Zajistit zavření modalu
+        cancelBtn.onclick = closeModals;
+        closeBtn.onclick = closeModals;
+
+        deleteModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Funkce pro smazání filmu
+    async function deleteMovie(id) {
+        try {
+            const formData = new FormData();
+            formData.append('action', 'delete');
+            formData.append('id', id);
+
+            const response = await fetch('api_endpoint.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                alert(result.message);
+                closeModals();
+                loadMovies(); // Znovu načíst seznam filmů
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            console.error('Chyba při mazání filmu:', error);
+            alert(`Chyba při mazání filmu: ${error.message}`);
+            closeModals(); // Zavřít modal i při chybě
+        }
     }
 
     // Helper funkce
@@ -281,6 +409,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function resetForm() {
         movieForm.reset();
+        movieIdInput.value = ''; // Vyčistit ID
+        modalTitle.textContent = 'Přidat nový film'; // Resetovat nadpis
         genreTags.innerHTML = '';
         imageUpload.innerHTML = `
             <div class="upload-icon">📷</div>
@@ -312,4 +442,52 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!document.querySelector('.time-group')) {
         addTimeInput();
     }
+
+    // --- Funkce pro úpravu filmu ---
+    function editMovie(movieData) {
+        resetForm(); // Nejprve resetovat formulář
+
+        // Nastavit hodnoty formuláře
+        movieIdInput.value = movieData.id_screening;
+        modalTitle.textContent = 'Upravit film'; // Změnit nadpis modalu
+        document.getElementById('movie-title').value = movieData.title || '';
+        document.getElementById('movie-duration').value = movieData.duration || '';
+        document.getElementById('movie-description').value = movieData.description || '';
+        document.getElementById('date-from').value = movieData.screening_date || '';
+        // document.getElementById('date-to').value = ''; // 'date-to' není v DB, nechat prázdné nebo odstranit z formuláře?
+
+        // Vyplnit žánry
+        if (movieData.genre && movieData.genre !== 'Nezařazeno') {
+            movieData.genre.split(',').forEach(g => addGenreTag(g.trim()));
+        }
+
+        // Vyplnit časy (očekáváme jeden čas)
+        const timeInput = document.querySelector('.time-input');
+        if (timeInput && movieData.screening_time) {
+             // Zajistit správný formát HH:MM
+             const timeParts = movieData.screening_time.split(':');
+             if (timeParts.length >= 2) {
+                 timeInput.value = `${timeParts[0].padStart(2, '0')}:${timeParts[1].padStart(2, '0')}`;
+             } else {
+                 timeInput.value = movieData.screening_time; // Fallback
+             }
+        }
+        // Odstranit případné další prázdné time inputy přidané resetem
+        document.querySelectorAll('.time-group').forEach((group, index) => {
+            if (index > 0 && !group.querySelector('input').value) {
+                group.remove();
+            }
+        });
+
+
+        // Zobrazit náhled obrázku, pokud existuje
+        if (movieData.image) {
+            imageUpload.innerHTML = `<img src="data:image/jpeg;base64,${movieData.image}" alt="Náhled" style="max-width: 100%; max-height: 100%;">`;
+        }
+
+        // Otevřít modal
+        movieModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
 });

@@ -70,29 +70,42 @@ document.addEventListener('DOMContentLoaded', function() {
         reserveBtn.disabled = selectedSeats.length === 0;
     }
 
-    // Vytvoření rezervace
+    // Vytvoření rezervace (odeslání všech míst najednou)
     reserveBtn.addEventListener('click', async function() {
+        if (selectedSeats.length === 0) {
+            alert('Prosím vyberte alespoň jedno místo.');
+            return;
+        }
+
+        // Deaktivovat tlačítko během zpracování
+        reserveBtn.disabled = true;
+        reserveBtn.textContent = 'Rezervuji...';
+
         try {
-            for (const seatId of selectedSeats) {
-                const formData = new FormData();
-                formData.append('action', 'create');
-                formData.append('screening_id', screeningId);
-                formData.append('seat_id', seatId.replace('seat', ''));
+            const seatIdsOnly = selectedSeats.map(seatElementId => seatElementId.replace('seat', ''));
 
-                const response = await fetch('reservation_handlers.php', {
-                    method: 'POST',
-                    body: formData
-                });
+            const formData = new FormData();
+            formData.append('action', 'create');
+            formData.append('screening_id', screeningId);
+            // Odeslat pole ID sedadel
+            seatIdsOnly.forEach(id => formData.append('seat_ids[]', id));
 
-                const result = await response.json();
+            const response = await fetch('reservation_handlers.php', {
+                method: 'POST',
+                body: formData
+            });
 
-                if (result.status === 'error') {
-                    throw new Error(result.message);
-                }
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const result = await response.json();
+
+            if (result.status === 'error') {
+                throw new Error(result.message);
             }
 
             // Úspěšná rezervace
-            alert('Rezervace byla úspěšně vytvořena!');
+            alert(result.message || 'Rezervace byla úspěšně vytvořena!');
 
             // Označení vybraných míst jako prodaných
             selectedSeats.forEach(seatId => {
@@ -107,12 +120,17 @@ document.addEventListener('DOMContentLoaded', function() {
             totalPrice = 0;
             updateUI();
 
-            // Přesměrování na seznam rezervací
-            window.location.href = 'my-reservations.php';
+            // Přesměrování na seznam rezervací po krátké pauze
+            setTimeout(() => {
+                window.location.href = 'my-reservations.php';
+            }, 500); // Krátká pauza, aby uživatel viděl změnu stavu
 
         } catch (error) {
             console.error('Chyba při vytváření rezervace:', error);
             alert(error.message || 'Došlo k chybě při vytváření rezervace.');
+            // Znovu povolit tlačítko při chybě
+            reserveBtn.disabled = false;
+            reserveBtn.textContent = 'Rezervovat místa';
         }
     });
 

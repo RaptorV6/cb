@@ -1,13 +1,103 @@
 <?php
-require_once 'db_config.php';
-require_once 'session_check.php';
+// File: reservation_handlers.php
+// Handles reservation related requests. Delegates logic to Reservation class.
+
+require_once __DIR__ . '/src/Reservation.php'; // Include Reservation class
+require_once __DIR__ . '/src/Auth.php';        // Auth is needed by Reservation constructor
+require_once __DIR__ . '/db_config.php';      // Needed for Database class auto-loading config
+
+// Instantiate Auth first (starts session)
+$auth = new Auth();
+// Instantiate Reservation, passing the Auth instance
+$reservationService = new Reservation($auth);
+
+// --- Request Handling ---
+header('Content-Type: application/json');
+
+// Handle POST requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // All POST actions require login (checked within Reservation methods or requireLogin below)
+    // requireLogin(); // Can be called here, or rely on checks within methods
+
+    $action = $_POST['action'] ?? '';
+    $response = ['status' => 'error', 'message' => 'Neplatná akce.'];
+
+    try {
+        switch ($action) {
+            case 'create':
+                // Use the new method for multiple reservations
+                if (isset($_POST['screening_id']) && isset($_POST['seat_ids']) && is_array($_POST['seat_ids'])) {
+                     // Basic validation: ensure seat_ids are integers
+                    $seatIds = array_map('intval', $_POST['seat_ids']);
+                    $seatIds = array_filter($seatIds, function($id) { return $id > 0; }); // Remove non-positive IDs
+                    
+                    if (!empty($seatIds)) {
+                        $response = $reservationService->createMultipleReservations($_POST['screening_id'], $seatIds);
+                    } else {
+                        $response = ['status' => 'error', 'message' => 'Nebyla vybrána platná místa.'];
+                    }
+                } else {
+                    $response = ['status' => 'error', 'message' => 'Chybí ID promítání nebo pole ID míst (seat_ids).'];
+                }
+                break;
+
+            case 'cancel':
+                if (isset($_POST['reservation_id'])) {
+                    $response = $reservationService->cancelReservation($_POST['reservation_id']);
+                } else {
+                     $response = ['status' => 'error', 'message' => 'Chybí ID rezervace pro zrušení.'];
+                }
+                break;
+
+            case 'get_available_seats':
+                if (isset($_POST['screening_id'])) {
+                    $response = $reservationService->getAvailableSeats($_POST['screening_id']);
+                    // Note: getAvailableSeats returns the array directly on success, or an error object
+                } else {
+                     $response = ['status' => 'error', 'message' => 'Chybí ID promítání pro načtení míst.'];
+                }
+                break;
+            
+            default:
+                 $response = ['status' => 'error', 'message' => 'Neznámá akce.'];
+                 break;
+        }
+    } catch (Exception $e) {
+        error_log("Reservation Handler Error: " . $e->getMessage());
+        $response = ['status' => 'error', 'message' => 'Došlo k systémové chybě.'];
+    }
+
+    echo json_encode($response);
+    exit;
+}
+
+// Handle GET requests (for fetching user's reservations)
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    // requireLogin(); // Checked within getReservations method
+    try {
+        $response = $reservationService->getReservations();
+    } catch (Exception $e) {
+         error_log("Reservation Handler Error (GET): " . $e->getMessage());
+         $response = ['status' => 'error', 'message' => 'Došlo k systémové chybě při načítání rezervací.'];
+    }
+    echo json_encode($response);
+    exit;
+}
+
+// If no valid action/method
+http_response_code(400); // Bad Request
+echo json_encode(['status' => 'error', 'message' => 'Neplatný požadavek nebo metoda.']);
+exit;
+
+/* --- Old procedural functions removed ---
 
 function getReservations($userId = null) {
     try {
-        $pdo = getDbConnection();
-        
+        $pdo = Database::getConnection(); // Use Database class
         $sql = "
-            SELECT r.*, s.title, s.screening_date, s.screening_time, s.genre, s.duration, seat.seat_number
+            SELECT r.id_reservation, r.id_user, r.id_screening, r.id_seat, r.status, r.reservation_time,
+                   s.title, s.screening_date, s.screening_time, s.genre, s.duration, encode(s.image, 'base64') as image,
+                   seat.seat_number
             FROM reservations r
             JOIN screenings s ON r.id_screening = s.id_screening
             JOIN seats seat ON r.id_seat = seat.id_seat
@@ -18,152 +108,5 @@ function getReservations($userId = null) {
             $stmt = $pdo->prepare($sql);
             $stmt->execute(['userId' => $userId]);
         } else {
-            $stmt = $pdo->query($sql);
-        }
-        
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        return ['status' => 'error', 'message' => 'Chyba při načítání rezervací: ' . $e->getMessage()];
-    }
-}
-
-function getAvailableSeats($screeningId) {
-    try {
-        $pdo = getDbConnection();
-        
-        $stmt = $pdo->prepare("
-            SELECT s.id_seat, s.seat_number
-            FROM seats s
-            WHERE s.id_seat NOT IN (
-                SELECT r.id_seat 
-                FROM reservations r 
-                WHERE r.id_screening = :screeningId 
-                AND r.status = 'active'
-            )
-        ");
-        
-        $stmt->execute(['screeningId' => $screeningId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        return ['status' => 'error', 'message' => 'Chyba při načítání volných míst: ' . $e->getMessage()];
-    }
-}
-
-function createReservation($data) {
-    try {
-        $pdo = getDbConnection();
-        
-        // Ověření, zda je místo volné
-        $stmt = $pdo->prepare("
-            SELECT COUNT(*) 
-            FROM reservations 
-            WHERE id_screening = :screeningId 
-            AND id_seat = :seatId 
-            AND status = 'active'
-        ");
-        
-        $stmt->execute([
-            'screeningId' => $data['screening_id'],
-            'seatId' => $data['seat_id']
-        ]);
-        
-        if ($stmt->fetchColumn() > 0) {
-            return ['status' => 'error', 'message' => 'Vybrané místo je již obsazené.'];
-        }
-        
-        // Vytvoření rezervace
-        $stmt = $pdo->prepare("
-            INSERT INTO reservations (id_user, id_screening, id_seat, status)
-            VALUES (:userId, :screeningId, :seatId, 'active')
-        ");
-        
-        $stmt->execute([
-            'userId' => $_SESSION['user_id'],
-            'screeningId' => $data['screening_id'],
-            'seatId' => $data['seat_id']
-        ]);
-        
-        return ['status' => 'success', 'message' => 'Rezervace byla úspěšně vytvořena.'];
-    } catch (PDOException $e) {
-        return ['status' => 'error', 'message' => 'Chyba při vytváření rezervace: ' . $e->getMessage()];
-    }
-}
-
-function cancelReservation($reservationId) {
-    try {
-        $pdo = getDbConnection();
-        
-        // Ověření, zda rezervace patří přihlášenému uživateli nebo je admin
-        $stmt = $pdo->prepare("
-            SELECT id_user 
-            FROM reservations 
-            WHERE id_reservation = :id 
-            AND status = 'active'
-        ");
-        
-        $stmt->execute(['id' => $reservationId]);
-        $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$reservation) {
-            return ['status' => 'error', 'message' => 'Rezervace neexistuje nebo již byla zrušena.'];
-        }
-        
-        if ($reservation['id_user'] !== $_SESSION['user_id'] && !isAdmin()) {
-            return ['status' => 'error', 'message' => 'Nemáte oprávnění zrušit tuto rezervaci.'];
-        }
-        
-        // Zrušení rezervace
-        $stmt = $pdo->prepare("
-            UPDATE reservations 
-            SET status = 'canceled' 
-            WHERE id_reservation = :id
-        ");
-        
-        $stmt->execute(['id' => $reservationId]);
-        
-        return ['status' => 'success', 'message' => 'Rezervace byla úspěšně zrušena.'];
-    } catch (PDOException $e) {
-        return ['status' => 'error', 'message' => 'Chyba při rušení rezervace: ' . $e->getMessage()];
-    }
-}
-
-// Zpracování API požadavků
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    requireLogin(); // Vyžadovat přihlášení
-    
-    $action = $_POST['action'] ?? '';
-    $response = ['status' => 'error', 'message' => 'Neplatný požadavek'];
-    
-    switch ($action) {
-        case 'create':
-            $response = createReservation($_POST);
-            break;
-            
-        case 'cancel':
-            if (isset($_POST['reservation_id'])) {
-                $response = cancelReservation($_POST['reservation_id']);
-            }
-            break;
-            
-        case 'get_available_seats':
-            if (isset($_POST['screening_id'])) {
-                $response = getAvailableSeats($_POST['screening_id']);
-            }
-            break;
-    }
-    
-    header('Content-Type: application/json');
-    echo json_encode($response);
-    exit;
-}
-
-// Pro GET požadavky vrátíme seznam rezervací
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    requireLogin();
-    
-    $userId = !isAdmin() ? $_SESSION['user_id'] : null;
-    header('Content-Type: application/json');
-    echo json_encode(getReservations($userId));
-    exit;
-}
+*/
 ?>
