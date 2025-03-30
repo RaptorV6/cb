@@ -1,0 +1,478 @@
+/* Responzivní styl pro stránku s filmy */
+
+
+/* Logo v headeru */
+
+.logo h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+
+/* Hlavní kontejner */
+
+.movies-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+
+/* Filtrování a vyhledávání */
+
+.filter-controls {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 25px;
+    gap: 10px;
+}
+
+.search-box {
+    display: flex;
+    width: 100%;
+}
+
+.search-box input {
+    flex: 1;
+    padding: 12px 15px;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 5px 0 0 5px;
+    font-size: 1rem;
+}
+
+.search-box input:focus {
+    outline: none;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.search-box button {
+    background-color: #0cb800;
+    border: none;
+    color: white;
+    padding: 0 15px;
+    cursor: pointer;
+    border-radius: 0 5px 5px 0;
+    transition: background-color 0.3s;
+}
+
+.search-box button:hover {
+    background-color: #09a100;
+}
+
+.filter-box select {
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.filter-box select:focus {
+    outline: none;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+
+/* Kontejner s filmy - výchozí zobrazení pro mobilní zařízení */
+
+.movies-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+
+/* Karta filmu - výchozí horizontální zobrazení pro mobil */
+
+.movie-card {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.movie-card:active {
+    transform: scale(0.98);
+}
+
+
+/* Obrázek filmu */
+
+.movie-image {
+    width: 90px;
+    min-width: 90px;
+    overflow: hidden;
+    position: relative;
+}
+
+.movie-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+/* Obsah filmu */
+
+.movie-content {
+    flex: 1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.movie-title {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 1.3em;
+}
+
+.movie-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.movie-meta {
+    display: flex;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #ccc;
+}
+
+.movie-time {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 8px 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+
+/* Mobile-specific reserve button */
+
+.mobile-reserve {
+    margin-top: auto;
+    display: block;
+}
+
+
+/* Desktop-specific reserve button (hidden on mobile) */
+
+.desktop-reserve {
+    display: none;
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    text-align: center;
+}
+
+.reserve-btn {
+    display: inline-block;
+    background-color: #0cb800;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background-color 0.3s;
+}
+
+.reserve-btn:hover,
+.reserve-btn:active {
+    background-color: #09a100;
+}
+
+.reserve-btn.disabled {
+    background-color: #666;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.ended-label {
+    display: inline-block;
+    background-color: #555;
+    color: #ccc;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
+/* Stavy filmů */
+
+.movie-card.upcoming .movie-image img,
+.movie-card.past .movie-image img {
+    filter: grayscale(0.5);
+}
+
+.movie-card.past {
+    opacity: 0.7;
+}
+
+
+/* Stránkování */
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 25px 0;
+    gap: 5px;
+}
+
+.pagination-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.pagination-btn:hover,
+.pagination-btn.active {
+    background-color: #0cb800;
+}
+
+.pagination-next {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1.2rem;
+}
+
+.pagination-next:hover {
+    background-color: #0cb800;
+}
+
+.pagination-dots {
+    color: #ccc;
+    margin: 0 5px;
+}
+
+
+/* Zpráva o žádných výsledcích */
+
+.no-results {
+    padding: 25px 15px;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.no-results-icon {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.no-results h3 {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+}
+
+.no-results p {
+    color: #aaa;
+}
+
+
+/* Responzivní úpravy pro tablety */
+
+@media (min-width: 600px) {
+    .filter-controls {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .search-box {
+        width: auto;
+        max-width: 60%;
+    }
+    .filter-box select {
+        width: auto;
+        min-width: 160px;
+    }
+    .movie-image {
+        width: 120px;
+        min-width: 120px;
+    }
+    .movie-time {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+}
+
+
+/* Přechod na dlaždice pro desktop */
+
+@media (min-width: 768px) {
+    /* Kontejner s filmy se změní na grid */
+    .movies-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+    }
+    /* Karta filmu se změní na vertikální */
+    .movie-card {
+        flex-direction: column;
+        height: 100%;
+    }
+    /* Obrázek filmu zaujme více místa */
+    .movie-image {
+        width: 100%;
+        min-width: auto;
+        height: 0;
+        padding-top: 130%;
+        /* Poměr stran pro náhled */
+    }
+    /* Změna pozice obrázku */
+    .movie-image img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transition: transform 0.5s ease;
+    }
+    .movie-card:hover .movie-image img {
+        transform: scale(1.05);
+    }
+    /* Přepnutí tlačítek rezervace */
+    .mobile-reserve {
+        display: none;
+    }
+    .desktop-reserve {
+        display: block;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .movie-card:hover .desktop-reserve {
+        opacity: 1;
+    }
+    /* Malé úpravy stylů pro desktop */
+    .movie-title {
+        font-size: 1rem;
+    }
+    .movie-time {
+        flex-direction: column;
+    }
+    .reserve-btn,
+    .ended-label {
+        width: 80%;
+        margin: 0 auto;
+    }
+}
+
+
+/* Větší počítače */
+
+@media (min-width: 992px) {
+    .movies-wrapper {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+    .movie-title {
+        font-size: 1.1rem;
+    }
+}
+
+
+/* Velké obrazovky */
+
+@media (min-width: 1200px) {
+    .movies-wrapper {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    }
+}
+
+
+/* Loading stav */
+
+.loading-state {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left-color: #0cb800;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* Stav bez výsledků - rozšíření existujícího stylu */
+
+.no-results {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.no-results.visible {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
