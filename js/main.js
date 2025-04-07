@@ -106,9 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="desktop-reserve">
                     ${isPast ? 
                         '<span class="ended-label">Projekce skončila</span>' :
-                        isUpcoming ? 
-                            '<span class="reserve-btn disabled">Rezervovat</span>' :
-                            `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
+                        // Odstraněna podmínka isUpcoming, tlačítko je aktivní pro všechny budoucí
+                        `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
                     }
                 </div>
             </div>
@@ -125,11 +124,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <div class="mobile-reserve">
-                    ${isPast ? 
+                     ${isPast ? 
                         '<span class="ended-label">Projekce skončila</span>' :
-                        isUpcoming ? 
-                            '<span class="reserve-btn disabled">Rezervovat</span>' :
-                            `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
+                         // Odstraněna podmínka isUpcoming, tlačítko je aktivní pro všechny budoucí
+                        `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
                     }
                 </div>
             </div>

@@ -13,6 +13,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Funkce pro načtení obsazených míst
     async function loadOccupiedSeats() {
+        console.log("Načítám obsazená místa pro screening ID:", screeningId); // Log screening ID
+        if (!screeningId) {
+            console.error("Chybí screening ID v URL!");
+            alert("Chyba: Chybí identifikátor promítání.");
+            // Disable all seats as we can't determine availability
+            seats.forEach(seat => {
+                seat.classList.add('sold'); // Mark as sold visually
+                seat.style.cursor = 'not-allowed';
+            });
+            return;
+        }
+
         try {
             const formData = new FormData();
             formData.append('action', 'get_available_seats');
@@ -23,18 +35,67 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: formData
             });
 
-            const availableSeats = await response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-            // Označení obsazených míst
-            seats.forEach(seat => {
-                const seatId = seat.id.replace('seat', '');
-                if (!availableSeats.find(s => s.id_seat === parseInt(seatId))) {
+            const availableSeatsResult = await response.json();
+            console.log("Obdržená dostupná místa:", availableSeatsResult); // Log the result
+
+            // Check for backend error object
+            if (typeof availableSeatsResult === 'object' && availableSeatsResult !== null && availableSeatsResult.status === 'error') {
+                console.error('Chyba z backendu při načítání volných míst:', availableSeatsResult.message);
+                alert('Chyba: Nepodařilo se načíst informace o dostupnosti míst.');
+                // Disable all seats on error
+                seats.forEach(seat => {
                     seat.classList.add('sold');
+                    seat.style.cursor = 'not-allowed';
+                });
+                return;
+            }
+
+            // Ensure it's an array before proceeding
+            if (!Array.isArray(availableSeatsResult)) {
+                console.error('Neočekávaná odpověď z backendu:', availableSeatsResult);
+                alert('Chyba: Server vrátil neplatná data o dostupnosti míst.');
+                // Disable all seats on unexpected data
+                seats.forEach(seat => {
+                    seat.classList.add('sold');
+                    seat.style.cursor = 'not-allowed';
+                });
+                return;
+            }
+
+            // Process the array of available seats
+            const availableSeatIds = availableSeatsResult.map(s => s.id_seat); // Get just the IDs
+            console.log("Dostupná ID míst:", availableSeatIds);
+
+            seats.forEach(seat => {
+                const seatId = parseInt(seat.id.replace('seat', ''), 10); // Ensure seatId is a number
+
+                if (availableSeatIds.includes(seatId)) {
+                    // Seat is available
+                    seat.classList.remove('sold', 'selected'); // Ensure it's not marked sold or selected initially
+                    seat.style.cursor = 'pointer';
+                } else {
+                    // Seat is occupied or doesn't exist in 'seats' table (shouldn't happen with current query)
+                    seat.classList.add('sold');
+                    seat.classList.remove('selected'); // Ensure it's not selected
                     seat.style.cursor = 'not-allowed';
                 }
             });
+
+            // Initial UI update in case all seats start occupied
+            updateUI();
+
         } catch (error) {
-            console.error('Chyba při načítání obsazených míst:', error);
+            console.error('Chyba při fetchování/zpracování obsazených míst:', error);
+            alert('Došlo k chybě při načítání dostupnosti míst. Zkuste obnovit stránku.');
+            // Disable all seats on fetch error
+            seats.forEach(seat => {
+                seat.classList.add('sold');
+                seat.style.cursor = 'not-allowed';
+            });
         }
     }
 
