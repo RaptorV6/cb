@@ -13,28 +13,21 @@ requireLogin(true); // Vyžaduje admin práva
     <link rel="stylesheet" href="./css/admin.css">
 </head>
 <body>
+<?php
+    require_once 'session_check.php';
+    $userMenu = getUserMenuHTML(); // Získá HTML pro menu podle stavu přihlášení
+    ?>
+
     <header class="site-header">
-        <h1 class="site-title">CineBukay | Admin</h1>
-        <?php echo getUserMenuHTML(); ?>
+        <div class="logo">
+            <h1>CineBukay</h1>
+        </div>
+        <?php echo $userMenu; ?>
     </header>
     
-    <!-- Navigace pro mobil -->
-    <nav class="mobile-nav">
-        <a href="#" class="nav-item active" data-section="movies">Filmy</a>
-        <a href="#" class="nav-item" data-section="reservations">Rezervace</a>
-        <a href="#" class="nav-item" data-section="users">Uživatelé</a>
-        <a href="#" class="nav-item" data-section="settings">Nastavení</a>
-    </nav>
+    <!-- Navigace odstraněna -->
     
-    <!-- Navigace pro desktop -->
-    <nav class="sidebar">
-        <a href="#" class="nav-item active" data-section="movies">Filmy</a>
-        <a href="#" class="nav-item" data-section="reservations">Rezervace</a>
-        <a href="#" class="nav-item" data-section="users">Uživatelé</a>
-        <a href="#" class="nav-item" data-section="settings">Nastavení</a>
-    </nav>
-    
-    <main class="main-content">
+    <main class="main-content full-width"> <!-- Přidána třída pro plnou šířku, pokud sidebar zmizel -->
         <!-- Sekce Filmy -->
         <div id="movies-section" class="content-section active">
             <div class="section-header">
@@ -73,8 +66,7 @@ requireLogin(true); // Vyžaduje admin práva
                             <th>Název</th>
                             <th>Žánr</th>
                             <th>Délka</th>
-                            <th>Datum promítání</th>
-                            <th>Časy</th>
+                            <th>Datum a čas promítání</th>
                             <th>Akce</th>
                         </tr>
                     </thead>
@@ -90,24 +82,7 @@ requireLogin(true); // Vyžaduje admin práva
                 <button class="next-btn">→</button>
             </div>
         </div>
-
-        <!-- Sekce Rezervace -->
-        <div id="reservations-section" class="content-section">
-            <h2>Správa rezervací</h2>
-            <!-- Sem přijde obsah pro správu rezervací -->
-        </div>
-
-        <!-- Sekce Uživatelé -->
-        <div id="users-section" class="content-section">
-            <h2>Správa uživatelů</h2>
-            <!-- Sem přijde obsah pro správu uživatelů -->
-        </div>
-
-        <!-- Sekce Nastavení -->
-        <div id="settings-section" class="content-section">
-            <h2>Nastavení</h2>
-            <!-- Sem přijde obsah pro nastavení -->
-        </div>
+        <!-- Ostatní sekce odstraněny -->
     </main>
     
     <!-- Modal pro přidání/úpravu filmu -->
@@ -162,27 +137,12 @@ requireLogin(true); // Vyžaduje admin práva
                         <input type="file" id="movie-image" style="display:none" accept="image/*">
                     </div>
                     
-                    <div class="form-row">
-                        <div class="form-col">
-                            <label class="form-label">Datum od *</label>
-                            <input type="date" class="form-input" id="date-from" required>
-                        </div>
-                        <div class="form-col">
-                            <label class="form-label">Datum do *</label>
-                            <input type="date" class="form-input" id="date-to" required>
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label">Datum a čas promítání *</label>
+                        <input type="datetime-local" class="form-input" id="movie-datetime" required>
                     </div>
                     
-                    <div class="form-group">
-                        <label class="form-label">Časy promítání</label>
-                        <div class="times-container" id="times-container">
-                            <div class="time-group">
-                                <input type="time" class="form-input time-input">
-                                <button type="button" class="remove-time">&times;</button>
-                            </div>
-                            <button type="button" class="add-time" id="add-time">+ Přidat čas</button>
-                        </div>
-                    </div>
+                    <!-- Odstraněna sekce pro více časů -->
                     
                     <div class="form-group">
                         <label class="form-label">Popis filmu</label>

@@ -12,25 +12,16 @@
 
 <body>
 
-    <header class="site-header">
-        <div class="back-button">
-            <a href="#" id="back-link">
-                <span class="back-arrow">&#8592;</span>
-                <span class="back-text">Zpět</span>
-            </a>
+<?php
+    require_once 'session_check.php';
+    $userMenu = getUserMenuHTML(); // Získá HTML pro menu podle stavu přihlášení
+    ?>
 
+    <header class="site-header">
+        <div class="logo">
+            <h1>CineBukay</h1>
         </div>
-        <div class="user-menu-container">
-            <div class="user-icon" id="user-icon">
-                <span class="user-icon-symbol">&#128100;</span>
-            </div>
-            <div class="dropdown-menu" id="dropdown-menu">
-                <ul>
-                    <li><a href="#settings">Nastavení</a></li>
-                    <li><a href="#logout">Odhlásit se</a></li>
-                </ul>
-            </div>
-        </div>
+        <?php echo $userMenu; ?>
     </header>
 
     <ul class="showcase">

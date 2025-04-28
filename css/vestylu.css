@@ -326,15 +326,25 @@
      }
      
      .user-icon {
-         width: 40px;
-         height: 40px;
+         /* width: 40px; */
+         /* Remove fixed width */
+         /* height: 40px; */
+         /* Remove fixed height */
+         padding: 5px 10px;
+         /* Add padding */
          background-color: #444451;
-         border-radius: 50%;
+         border-radius: 8px;
+         /* Slightly rounded rectangle */
          display: flex;
+         flex-direction: column;
+         /* Stack icon and name vertically */
          justify-content: center;
          align-items: center;
          cursor: pointer;
          transition: background-color 0.3s ease;
+         min-width: 60px;
+         /* Ensure minimum width */
+         text-align: center;
      }
      
      .user-icon:hover {
@@ -342,13 +352,35 @@
      }
      
      .user-icon-symbol {
-         font-size: 1.3rem;
+         font-size: 1.5rem;
+         /* Slightly larger icon */
          color: #fff;
+         line-height: 1;
+         /* Adjust line height */
+     }
+     /* Style for the username */
+     
+     .user-name {
+         font-size: 0.7rem;
+         /* Smaller font size for name */
+         color: #ccc;
+         margin-top: 4px;
+         /* Space between icon and name */
+         display: block;
+         /* Ensure it takes its own line */
+         max-width: 80px;
+         /* Prevent long names from breaking layout */
+         overflow: hidden;
+         text-overflow: ellipsis;
+         white-space: nowrap;
      }
      
      .dropdown-menu {
          position: absolute;
-         top: 50px;
+         top: 100%;
+         /* Position below the user icon */
+         margin-top: 5px;
+         /* Add some space */
          right: 0;
          background-color: #333;
          border-radius: 5px;

@@ -44,35 +44,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Základní údaje
                 const title = document.getElementById('movie-title').value;
                 const duration = document.getElementById('movie-duration').value;
-                const dateFrom = document.getElementById('date-from').value;
+                const screeningDateTime = document.getElementById('movie-datetime').value;
                 const description = document.getElementById('movie-description').value;
+                const genreInputVal = document.getElementById('movie-genre').value.trim(); // Získat i hodnotu z inputu, pokud nebyl přidán tag
 
                 // Povinná pole
-                if (!title || !duration || !dateFrom) {
-                    alert('Vyplňte prosím všechna povinná pole (název, délka, datum)');
+                if (!title || !duration || !screeningDateTime) {
+                    alert('Vyplňte prosím všechna povinná pole (název, délka, datum a čas)');
                     return;
                 }
+
+                // Rozdělení data a času a validace
+                const parts = screeningDateTime.split('T');
+                if (parts.length !== 2 || !parts[0] || !parts[1]) {
+                    alert('Datum a čas promítání není ve správném formátu (očekáváno YYYY-MM-DDTHH:MM).');
+                    return; // Zastavit odesílání, pokud formát není správný
+                }
+                const datePart = parts[0];
+                const timePart = parts[1];
 
                 formData.append('title', title);
                 formData.append('duration', duration);
-                formData.append('screening_date', dateFrom);
+                formData.append('screening_date', datePart); // Odeslat pouze datum
+                formData.append('screening_time', JSON.stringify([timePart])); // Odeslat čas jako JSON pole s jednou hodnotou
                 formData.append('description', description);
 
-                // Žánry
-                const genres = Array.from(genreTags.querySelectorAll('.genre-tag'))
+                // Žánry - sběr z tagů
+                let genres = Array.from(genreTags.querySelectorAll('.genre-tag'))
                     .map(tag => tag.textContent.replace('×', '').trim())
                     .filter(genre => genre);
-                formData.append('genre', genres.length ? genres.join(', ') : 'Nezařazeno');
 
-                // Časy promítání
-                const times = Array.from(document.querySelectorAll('.time-input'))
-                    .map(input => input.value)
-                    .filter(time => time);
-                if (!times.length) {
-                    alert('Přidejte prosím alespoň jeden čas promítání');
-                    return;
+                // Pokud je něco v inputu a není to už v tazích, přidej to
+                if (genreInputVal && !genres.map(g => g.toLowerCase()).includes(genreInputVal.toLowerCase())) {
+                    genres.push(genreInputVal);
                 }
-                formData.append('screening_time', JSON.stringify(times));
+
+                if (!genres.length) {
+                    alert('Přidejte prosím alespoň jeden žánr.');
+                    return; // Žánr je nyní povinný
+                }
+                formData.append('genre', genres.join(', ')); // Odeslat jako string oddělený čárkou
+
+                // Časy promítání - odstraněno
 
                 // Přidání obrázku do FormData, pokud byl vybrán
                 const imageInput = document.getElementById('movie-image');
@@ -173,29 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Přidávání časů promítání
-            document.getElementById('add-time').addEventListener('click', addTimeInput);
-
-            function addTimeInput(value = '') {
-                const timeGroup = document.createElement('div');
-                timeGroup.className = 'time-group';
-                timeGroup.innerHTML = `
-            <input type="time" class="form-input time-input" value="${value}">
-            <button type="button" class="remove-time">&times;</button>
-        `;
-
-                const timesContainer = document.getElementById('times-container');
-                timesContainer.insertBefore(timeGroup, document.getElementById('add-time'));
-
-                timeGroup.querySelector('.remove-time').addEventListener('click', function() {
-                    const timeGroups = document.querySelectorAll('.time-group');
-                    if (timeGroups.length > 1) {
-                        timeGroup.remove();
-                    } else {
-                        timeGroup.querySelector('input').value = '';
-                    }
-                });
-            }
+            // Přidávání časů promítání - odstraněno
 
             // Načtení filmů z API (api_endpoint.php)
             async function loadMovies() {
@@ -258,10 +249,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span>${movie.title}</span>
                     </div>
                 </td>
-                <td>${movie.genre}</td>
+                <td>${movie.genre || 'N/A'}</td>
                 <td>${movie.duration} min</td>
-                <td>${formatDate(movie.screening_date)}</td>
-                <td>${formatTime(movie.screening_time)}</td>
+                <td>${formatDateTime(movie.screening_datetime)}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="edit-btn" data-id="${movie.id_screening}">Upravit</button>
@@ -286,9 +276,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <div class="movie-details">
-                    <div class="movie-dates">
-                        <div><span class="date-label">Datum:</span> ${formatDate(movie.screening_date)}</div>
-                        <div><span class="time-label">Časy:</span> ${formatTime(movie.screening_time)}</div>
+                    <div class="movie-datetime">
+                        <span class="datetime-label">Promítání:</span> ${formatDateTime(movie.screening_datetime)}
                     </div>
                 </div>
                 <div class="movie-actions">
@@ -416,32 +405,44 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="upload-icon">📷</div>
             <div>Nahrát obrázek</div>
         `;
+        document.getElementById('movie-datetime').value = ''; // Reset datetime pole
 
-        // Reset časů
-        const timeGroups = document.querySelectorAll('.time-group');
-        timeGroups.forEach((group, index) => {
-            if (index > 0) group.remove();
-        });
-        if (timeGroups.length === 0) {
-            addTimeInput();
-        } else {
-            timeGroups[0].querySelector('input').value = '';
+        // Reset časů - odstraněno
+    }
+
+    // Pomocná funkce pro formátování data a času
+    function formatDateTime(dateTimeStr) {
+        if (!dateTimeStr) return 'N/A';
+        try {
+            const date = new Date(dateTimeStr);
+            // Ověření platnosti data
+            if (isNaN(date.getTime())) {
+                // Pokud je formát nekompatibilní s new Date(), zkusíme parsovat manuálně
+                // Očekáváme formát YYYY-MM-DD HH:MM:SS nebo YYYY-MM-DDTHH:MM
+                const parts = dateTimeStr.split(/[\sT]/);
+                if (parts.length >= 2) {
+                    const dateParts = parts[0].split('-');
+                    const timeParts = parts[1].split(':');
+                    if (dateParts.length === 3 && timeParts.length >= 2) {
+                         // Sestavení data pro český formát
+                         return `${parseInt(dateParts[2])}.${parseInt(dateParts[1])}.${dateParts[0]} ${timeParts[0]}:${timeParts[1]}`;
+                    }
+                }
+                return dateTimeStr; // Fallback na původní string, pokud parsování selže
+            }
+            // Použití Intl pro lokalizovaný formát
+            const options = {
+                year: 'numeric', month: 'numeric', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            };
+            return new Intl.DateTimeFormat('cs-CZ', options).format(date);
+        } catch (e) {
+            console.error("Chyba formátování data:", dateTimeStr, e);
+            return dateTimeStr; // Vrať původní string v případě chyby
         }
     }
 
-    function formatDate(dateStr) {
-        return new Date(dateStr).toLocaleDateString('cs-CZ');
-    }
-
-    function formatTime(timeStr) {
-        if (!timeStr) return '';
-        return timeStr;
-    }
-
-    // Init
-    if (!document.querySelector('.time-group')) {
-        addTimeInput();
-    }
+    // Init - odstraněno volání addTimeInput
 
     // --- Funkce pro úpravu filmu ---
     function editMovie(movieData) {
@@ -453,32 +454,44 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('movie-title').value = movieData.title || '';
         document.getElementById('movie-duration').value = movieData.duration || '';
         document.getElementById('movie-description').value = movieData.description || '';
-        document.getElementById('date-from').value = movieData.screening_date || '';
-        // document.getElementById('date-to').value = ''; // 'date-to' není v DB, nechat prázdné nebo odstranit z formuláře?
+        // Vyplnit datum a čas - potřebujeme formát YYYY-MM-DDTHH:MM
+        if (movieData.screening_datetime) {
+             try {
+                 const date = new Date(movieData.screening_datetime);
+                 if (!isNaN(date.getTime())) {
+                     // Formátování pro datetime-local input (YYYY-MM-DDTHH:MM)
+                     const year = date.getFullYear();
+                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                     const day = date.getDate().toString().padStart(2, '0');
+                     const hours = date.getHours().toString().padStart(2, '0');
+                     const minutes = date.getMinutes().toString().padStart(2, '0');
+                     document.getElementById('movie-datetime').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                 } else {
+                     // Pokud new Date() selže, zkusíme zachovat původní hodnotu, pokud je v očekávaném formátu
+                     if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(movieData.screening_datetime)) {
+                         document.getElementById('movie-datetime').value = movieData.screening_datetime;
+                     } else {
+                         console.warn("Nepodařilo se převést screening_datetime do formátu YYYY-MM-DDTHH:MM:", movieData.screening_datetime);
+                         document.getElementById('movie-datetime').value = ''; // Resetovat, pokud formát není správný
+                     }
+                 }
+             } catch (e) {
+                 console.error("Chyba při nastavování data a času pro úpravu:", e);
+                 document.getElementById('movie-datetime').value = '';
+             }
+        } else {
+             document.getElementById('movie-datetime').value = '';
+        }
+
 
         // Vyplnit žánry
+        genreTags.innerHTML = ''; // Nejprve vyčistit tagy
         if (movieData.genre && movieData.genre !== 'Nezařazeno') {
             movieData.genre.split(',').forEach(g => addGenreTag(g.trim()));
         }
+        document.getElementById('movie-genre').value = ''; // Vyčistit input pro žánr
 
-        // Vyplnit časy (očekáváme jeden čas)
-        const timeInput = document.querySelector('.time-input');
-        if (timeInput && movieData.screening_time) {
-             // Zajistit správný formát HH:MM
-             const timeParts = movieData.screening_time.split(':');
-             if (timeParts.length >= 2) {
-                 timeInput.value = `${timeParts[0].padStart(2, '0')}:${timeParts[1].padStart(2, '0')}`;
-             } else {
-                 timeInput.value = movieData.screening_time; // Fallback
-             }
-        }
-        // Odstranit případné další prázdné time inputy přidané resetem
-        document.querySelectorAll('.time-group').forEach((group, index) => {
-            if (index > 0 && !group.querySelector('input').value) {
-                group.remove();
-            }
-        });
-
+        // Časy - odstraněno
 
         // Zobrazit náhled obrázku, pokud existuje
         if (movieData.image) {
