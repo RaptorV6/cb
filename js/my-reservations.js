@@ -32,14 +32,21 @@ document.addEventListener('DOMContentLoaded', function() {
             async function loadReservations() {
                 try {
                     const response = await fetch('reservation_handlers.php');
-                    const reservations = await response.json();
+                    const result = await response.json();
 
-                    if (Array.isArray(reservations)) {
-                        updateReservationsUI(reservations);
+                    if (response.ok && Array.isArray(result)) {
+                        updateReservationsUI(result);
+                    } else {
+                        // Pokud odpověď není OK nebo neobsahuje pole, zkusíme zobrazit chybovou zprávu z backendu
+                        console.error('Chyba při načítání rezervací nebo neplatná odpověď:', result);
+                        const errorMessage = result && result.message ? result.message : 'Nepodařilo se načíst rezervace. Zkuste to prosím znovu.';
+                        alert(errorMessage);
+                        // Můžeme také zobrazit prázdný stav nebo jinou indikaci chyby v UI
+                        updateReservationsUI([]); // Zobrazí prázdný stav
                     }
                 } catch (error) {
-                    console.error('Chyba při načítání rezervací:', error);
-                    alert('Nepodařilo se načíst rezervace. Zkuste to prosím znovu.');
+                    console.error('Chyba při zpracování odpovědi rezervací:', error);
+                    alert('Došlo k chybě při komunikaci se serverem. Zkuste to prosím znovu.');
                 }
             }
 
@@ -83,9 +90,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 card.innerHTML = `
             <div class="reservation-header">
-                <img src="data:image/jpeg;base64,${reservation.image}" alt="${reservation.title}" class="movie-thumbnail">
+                <img src="data:image/jpeg;base64,${reservation.image}" alt="${reservation.movie_title}" class="movie-thumbnail">
                 <div class="reservation-info">
-                    <h3 class="movie-title">${reservation.title}</h3>
+                    <h3 class="movie-title">${reservation.movie_title}</h3>
                     <div class="movie-details">
                         <span class="movie-genre">${reservation.genre}</span>
                         <span class="movie-duration">${reservation.duration} min</span>
@@ -119,7 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const cancelBtn = card.querySelector('.cancel-btn');
         if (cancelBtn) {
             cancelBtn.addEventListener('click', function() {
-                showCancelConfirmation(reservation.id_reservation, reservation.title);
+                // Předáváme správný název filmu do funkce pro potvrzení
+                showCancelConfirmation(reservation.id_reservation, reservation.movie_title); 
             });
         }
 

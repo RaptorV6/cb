@@ -26,7 +26,7 @@ class Reservation {
 
         try {
             $sql = "
-                SELECT r.id_reservation, r.id_user, r.id_screening, r.id_seat, r.status, r.reservation_time,
+                SELECT r.id_reservation, r.id_user, r.id_screening, r.id_seat, r.status, r.created_at, 
                        s.title, s.screening_date, s.screening_time, s.genre, s.duration, encode(s.image, 'base64') as image,
                        seat.seat_number
                 FROM reservations r
@@ -35,19 +35,20 @@ class Reservation {
             ";
 
             if ($userId) {
-                $sql .= " WHERE r.id_user = :userId ORDER BY r.reservation_time DESC";
+                $sql .= " WHERE r.id_user = :userId ORDER BY r.created_at DESC"; // Oprava ORDER BY
                 $stmt = $this->pdo->prepare($sql);
                 $stmt->execute(['userId' => $userId]);
             } else {
                 // Admin gets all reservations
-                $sql .= " ORDER BY r.reservation_time DESC";
+                $sql .= " ORDER BY r.created_at DESC"; // Oprava ORDER BY
                 $stmt = $this->pdo->query($sql);
             }
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Reservation Error (getReservations): " . $e->getMessage());
-            return ['status' => 'error', 'message' => 'Chyba při načítání rezervací.'];
+            // Dočasně vracíme konkrétní PDOException message pro ladění
+            return ['status' => 'error', 'message' => 'Chyba DB: ' . $e->getMessage()];
         }
     }
 
