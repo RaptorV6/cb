@@ -78,15 +78,60 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const now = new Date();
                 movies.forEach(movie => {
-                    const screeningDate = new Date(movie.screening_date);
-                    const isPast = screeningDate < now;
-                    const isUpcoming = screeningDate > new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 dní dopředu
+                    // Získání data a časů projekce
+                    const screeningDateStr = movie.screening_date; // např. "2025-04-28"
+                    let screeningTimes = [];
+                    try {
+                        // Časy jsou uloženy jako JSON string pole
+                        screeningTimes = JSON.parse(movie.screening_time); // např. ["18:00", "20:30"]
+                        if (!Array.isArray(screeningTimes)) screeningTimes = []; // Zajistit, že je to pole
+                    } catch (e) {
+                        console.error("Chyba při parsování časů projekce:", movie.screening_time, e);
+                        screeningTimes = []; // V případě chyby použít prázdné pole
+                    }
+
+                    let lastScreeningEndDateTime = null;
+                    if (screeningTimes.length > 0 && movie.duration) {
+                        // Najdeme poslední čas projekce (předpokládáme, že jsou seřazené nebo vezmeme poslední)
+                        const lastTimeStr = screeningTimes[screeningTimes.length - 1]; // např. "20:30"
+
+                        // Spojíme datum a poslední čas začátku
+                        const lastScreeningStartDateTimeStr = `${screeningDateStr}T${lastTimeStr}:00`; // např. "2025-04-28T20:30:00"
+                        const lastScreeningStartDateTime = new Date(lastScreeningStartDateTimeStr);
+
+                        // Přidáme délku filmu k poslednímu času začátku, abychom získali čas konce
+                        if (!isNaN(lastScreeningStartDateTime.getTime())) {
+                            lastScreeningEndDateTime = new Date(lastScreeningStartDateTime.getTime() + movie.duration * 60000);
+                        } else {
+                            console.warn("Neplatný formát data/času pro výpočet konce:", movie.title, lastScreeningStartDateTimeStr);
+                            // Fallback: použijeme konec dne data projekce
+                            const screeningDateOnly = new Date(screeningDateStr);
+                            screeningDateOnly.setHours(23, 59, 59, 999);
+                            lastScreeningEndDateTime = screeningDateOnly;
+                        }
+                    } else {
+                        // Pokud nejsou časy nebo délka, použijeme konec dne data projekce
+                        const screeningDateOnly = new Date(screeningDateStr);
+                        screeningDateOnly.setHours(23, 59, 59, 999);
+                        lastScreeningEndDateTime = screeningDateOnly;
+                    }
+
+                    // Porovnání s aktuálním časem
+                    const isPast = lastScreeningEndDateTime ? now > lastScreeningEndDateTime : false;
+
+                    // Kontrola, zda je film "nadcházející" (začíná za více než 7 dní)
+                    // Použijeme začátek dne data projekce pro toto porovnání
+                    const screeningStartDateOnly = new Date(screeningDateStr);
+                    screeningStartDateOnly.setHours(0, 0, 0, 0); // Začátek dne
+                    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+                    const isUpcoming = screeningStartDateOnly > sevenDaysFromNow;
 
                     const card = createMovieCard(movie, isPast, isUpcoming);
                     moviesWrapper.appendChild(card);
                 });
 
                 setupMobileCardClicks();
+                setupTooltips(); // Nastavení tooltipů po přidání karet
             }
 
             // Vytvoření karty filmu
@@ -266,6 +311,11 @@ document.addEventListener('DOMContentLoaded', function() {
         setupTooltips();
     });
 
-    // Inicializace tooltipů
-    setupTooltips();
+    // Event listener pro změnu velikosti okna
+    window.addEventListener('resize', function() {
+        setupMobileCardClicks();
+        setupTooltips(); // Aktualizace tooltipů při změně velikosti
+    });
+
+    // Inicializace tooltipů se již volá v updateMoviesUI po načtení filmů
 });
