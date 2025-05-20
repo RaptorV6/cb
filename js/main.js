@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Elementy pro vyhledávání a filtrování
             const searchInput = document.getElementById('search-input');
-            const searchBtn = document.getElementById('search-btn');
+            const searchBtn = document.getElementById('search-input');
             const filterSelect = document.getElementById('filter-select');
             const moviesWrapper = document.getElementById('movies-wrapper');
             const paginationBtns = document.querySelectorAll('.pagination-btn');
@@ -78,80 +78,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const now = new Date();
                 movies.forEach(movie => {
-                    // Získání data a časů projekce
+                    // Získání data a času projekce
                     const screeningDateStr = movie.screening_date; // např. "2025-04-28"
-                    let screeningTimes = [];
-                    try {
-                        // Časy jsou uloženy jako JSON string pole
-                        screeningTimes = JSON.parse(movie.screening_time); // např. ["18:00", "20:30"]
-                        if (!Array.isArray(screeningTimes)) screeningTimes = []; // Zajistit, že je to pole
-                    } catch (e) {
-                        console.error("Chyba při parsování časů projekce:", movie.screening_time, e);
-                        screeningTimes = []; // V případě chyby použít prázdné pole
-                    }
+                    let screeningTimeStr = movie.screening_time; // např. "10:10:00"
 
-                    let lastScreeningEndDateTime = null;
-                    if (screeningTimes.length > 0 && movie.duration) {
-                        // Najdeme poslední čas projekce (předpokládáme, že jsou seřazené nebo vezmeme poslední)
-                        const lastTimeStr = screeningTimes[screeningTimes.length - 1]; // např. "20:30"
+                    // Vytvoření úplného data a času promítání
+                    const screeningDateTime = new Date(screeningDateStr + 'T' + screeningTimeStr);
 
-                        // Spojíme datum a poslední čas začátku
-                        const lastScreeningStartDateTimeStr = `${screeningDateStr}T${lastTimeStr}:00`; // např. "2025-04-28T20:30:00"
-                        const lastScreeningStartDateTime = new Date(lastScreeningStartDateTimeStr);
-
-                        // Přidáme délku filmu k poslednímu času začátku, abychom získali čas konce
-                        if (!isNaN(lastScreeningStartDateTime.getTime())) {
-                            lastScreeningEndDateTime = new Date(lastScreeningStartDateTime.getTime() + movie.duration * 60000);
-                        } else {
-                            console.warn("Neplatný formát data/času pro výpočet konce:", movie.title, lastScreeningStartDateTimeStr);
-                            // Fallback: použijeme konec dne data projekce
-                            const screeningDateOnly = new Date(screeningDateStr);
-                            screeningDateOnly.setHours(23, 59, 59, 999);
-                            lastScreeningEndDateTime = screeningDateOnly;
-                        }
-                    } else {
-                        // Pokud nejsou časy nebo délka, použijeme konec dne data projekce
-                        const screeningDateOnly = new Date(screeningDateStr);
-                        screeningDateOnly.setHours(23, 59, 59, 999);
-                        lastScreeningEndDateTime = screeningDateOnly;
-                    }
-
-                    // Porovnání s aktuálním časem
-                    const isPast = lastScreeningEndDateTime ? now > lastScreeningEndDateTime : false;
+                    // Jednoduchá kontrola - film je minulý, pokud datum a čas promítání už uplynuly
+                    const isPast = screeningDateTime < now;
 
                     // Kontrola, zda je film "nadcházející" (začíná za více než 7 dní)
-                    // Použijeme začátek dne data projekce pro toto porovnání
-                    const screeningStartDateOnly = new Date(screeningDateStr);
-                    screeningStartDateOnly.setHours(0, 0, 0, 0); // Začátek dne
                     const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-                    const isUpcoming = screeningStartDateOnly > sevenDaysFromNow;
+                    const isUpcoming = screeningDateTime > sevenDaysFromNow;
 
                     const card = createMovieCard(movie, isPast, isUpcoming);
                     moviesWrapper.appendChild(card);
                 });
 
                 setupMobileCardClicks();
-                setupTooltips(); // Nastavení tooltipů po přidání karet
+                setupTooltips();
             }
 
             // Vytvoření karty filmu
             function createMovieCard(movie, isPast, isUpcoming) {
                 const card = document.createElement('div');
-                card.className = `movie-card${isPast ? ' past' : ''}${isUpcoming ? ' upcoming' : ''}`;
+                card.className = `movie-card${isPast ? " past" : ""}${isUpcoming ? " upcoming" : ""}`;
 
                 const times = formatTimes(movie.screening_time);
                 // Předáváme isPast do formatDateRange
                 const dateRange = formatDateRange(movie.screening_date, movie, isPast);
 
                 // Použití base64 obrázku z api_endpoint.php
-                const imgSrc = movie.image ? `data:image/jpeg;base64,${movie.image}` : 'https://via.placeholder.com/260x390?text=No+Image'; // Placeholder if no image
+                const imgSrc = movie.image ? `data:image/jpeg;base64,${movie.image}` : 'https://via.placeholder.com/260x390?text=No+Image';
 
                 card.innerHTML = `
             <div class="movie-image">
                 <img src="${imgSrc}" alt="${movie.title}">
                 <div class="desktop-reserve">
                     ${isPast ?
-                        '<span class="ended-label">Projekce skončila</span>' :
+                        "<span class='ended-label'>Projekce skončila</span>" :
                         `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
                     }
                 </div>
@@ -170,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="mobile-reserve">
                      ${isPast ?
-                        '<span class="ended-label">Projekce skončila</span>' :
+                        "<span class='ended-label'>Projekce skončila</span>" :
                         `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
                     }
                 </div>
