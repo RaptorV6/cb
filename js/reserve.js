@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Speciální zpráva pro již začaté promítání
                 if (availableSeatsResult.message.includes("Promítání již začalo")) {
-                    alert('Promítání již začalo, rezervace není možná.');
+                    //alert('Promítání již začalo, rezervace není možná.');
                     // Nahradit formulář informační zprávou
                     document.querySelector('.room-container').innerHTML =
                         '<div style="text-align: center; padding: 50px; background: rgba(0,0,0,0.3); border-radius: 10px;">' +
