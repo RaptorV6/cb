@@ -55,23 +55,76 @@ document.addEventListener('DOMContentLoaded', function() {
                 const upcomingTab = document.getElementById('upcoming-tab');
                 const pastTab = document.getElementById('past-tab');
 
+                // Vyčistíme kontejnery
                 upcomingTab.querySelector('.reservation-list').innerHTML = '';
                 pastTab.querySelector('.reservation-list').innerHTML = '';
 
                 const now = new Date();
+                console.log("Aktuální čas:", now);
+
+                // Pro testování vypíšeme všechny rezervace
+                console.log("Všechny rezervace:", reservations);
 
                 reservations.forEach(reservation => {
-                    const screeningDate = new Date(reservation.screening_date);
-                    const isPast = screeningDate < now;
+                    try {
+                        // Nejprve získejme správné datum a čas promítání
+                        const screeningDate = reservation.screening_date; // Formát: YYYY-MM-DD
 
-                    const card = createReservationCard(reservation);
-                    const targetTab = isPast ? pastTab : upcomingTab;
-                    targetTab.querySelector('.reservation-list').appendChild(card);
+                        // Zpracování času promítání - může být formátován různě
+                        let screeningTime = reservation.screening_time;
+                        if (typeof screeningTime === 'string') {
+                            // Pokud je to JSON string, parsujeme ho
+                            if (screeningTime.startsWith('[') || screeningTime.startsWith('{')) {
+                                try {
+                                    const parsed = JSON.parse(screeningTime);
+                                    screeningTime = Array.isArray(parsed) ? parsed[0] : screeningTime;
+                                } catch (e) {
+                                    console.warn("Nepodařilo se parsovat čas jako JSON:", screeningTime);
+                                }
+                            }
+                        }
+
+                        // Vytvoříme datum a čas začátku promítání
+                        const dateTimeStr = `${screeningDate}T${screeningTime}`;
+                        const screeningDateTime = new Date(dateTimeStr);
+
+                        // Výpis pro ladění
+                        console.log(`Film: ${reservation.movie_title}`);
+                        console.log(`  Datum a čas: ${dateTimeStr} -> ${screeningDateTime}`);
+                        console.log(`  Porovnání: ${screeningDateTime} ${screeningDateTime < now ? '<' : '>='} ${now}`);
+
+                        // JASNĚ URČÍME: pokud čas promítání je větší nebo roven než nyní, je to aktuální rezervace
+                        // Pokud je čas promítání v minulosti, je to historická rezervace
+                        const isPast = screeningDateTime < now;
+
+                        // Vytvoříme kartu a vložíme ji do správného kontejneru
+                        const card = createReservationCard(reservation);
+
+                        if (isPast) {
+                            console.log(`  -> Zařazeno do HISTORIE (již proběhlo)`);
+                            pastTab.querySelector('.reservation-list').appendChild(card);
+                        } else {
+                            console.log(`  -> Zařazeno do AKTUÁLNÍCH (ještě neproběhlo)`);
+                            upcomingTab.querySelector('.reservation-list').appendChild(card);
+                        }
+                    } catch (e) {
+                        console.error(`Chyba při zpracování rezervace:`, e, reservation);
+                        // Při chybě nezobrazíme tuto rezervaci
+                    }
                 });
 
                 // Kontrola prázdných stavů
                 checkEmptyState(upcomingTab);
                 checkEmptyState(pastTab);
+
+                // Přesvědčíme se, že je aktivní záložka "Aktuální"
+                // Obalíme do setTimeout, aby to proběhlo až po vykreslení DOM
+                setTimeout(() => {
+                    const upcomingBtn = document.querySelector('[data-tab="upcoming"]');
+                    if (upcomingBtn && !upcomingBtn.classList.contains('active')) {
+                        upcomingBtn.click();
+                    }
+                }, 0);
             }
 
             // Vytvoření karty rezervace
