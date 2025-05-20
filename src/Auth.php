@@ -213,7 +213,6 @@ class Auth {
             }
 
             $html .= '<li><a href="my-reservations.php">Moje rezervace</a></li>';
-            // Use auth_handlers.php for logout action for simplicity now
             $html .= '<li><a href="auth_handlers.php?action=logout">Odhlásit se</a></li>';
             $html .= '</ul>';
             $html .= '</div>';

@@ -176,5 +176,6 @@ requireLogin(true); // Vyžaduje admin práva
     </div>
     
     <script src="./js/admin.js"></script>
+    <script src="./js/common.js"></script>
 </body>
 </html>

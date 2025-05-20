@@ -21,17 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             filterSelect.addEventListener('change', filterMovies);
 
-            // User menu toggle
-            userIcon.addEventListener('click', function(e) {
-                e.stopPropagation();
-                dropdownMenu.classList.toggle('active');
-            });
-
-            document.addEventListener('click', function() {
-                if (dropdownMenu.classList.contains('active')) {
-                    dropdownMenu.classList.remove('active');
-                }
-            });
 
             // Načtení filmů
             async function loadMovies() {

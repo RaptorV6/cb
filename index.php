@@ -71,5 +71,6 @@
     </main>
 
     <script src="./js/main.js"></script>
+    <script src="./js/common.js"></script>
 </body>
 </html>

@@ -26,7 +26,11 @@ $currentUser = $auth->getCurrentUser();
                 <span class="back-text">Zpět na program</span>
             </a>
         </div>
-        <?php echo $auth->getUserMenuHTML(); // Dynamically generate user menu ?>
+        <?php
+        require_once 'session_check.php';
+        $userMenu = getUserMenuHTML();
+        echo $userMenu;
+        ?>
     </header>
 
     <main class="reservations-container">
@@ -80,5 +84,6 @@ $currentUser = $auth->getCurrentUser();
 
 
     <script src="./js/my-reservations.js"></script>
+    <script src="./js/common.js"></script>
 </body>
 </html>

@@ -86,6 +86,7 @@
     </div>
 
     <script src="./js/reserve.js"></script>
+    <script src="./js/common.js"></script>
 </body>
 
 </html>
