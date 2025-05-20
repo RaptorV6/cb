@@ -40,17 +40,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const availableSeatsResult = await response.json();
-            console.log("Obdržená dostupná místa:", availableSeatsResult); // Log the result
+            console.log("Obdržená dostupná místa:", availableSeatsResult);
 
-            // Check for backend error object
+            // Kontrola chybové zprávy
             if (typeof availableSeatsResult === 'object' && availableSeatsResult !== null && availableSeatsResult.status === 'error') {
-                console.error('Chyba z backendu při načítání volných míst:', availableSeatsResult.message);
-                alert('Chyba: Nepodařilo se načíst informace o dostupnosti míst.');
-                // Disable all seats on error
-                seats.forEach(seat => {
-                    seat.classList.add('sold');
-                    seat.style.cursor = 'not-allowed';
-                });
+                console.error('Chyba z backendu:', availableSeatsResult.message);
+
+                // Speciální zpráva pro již začaté promítání
+                if (availableSeatsResult.message.includes("Promítání již začalo")) {
+                    alert('Promítání již začalo, rezervace není možná.');
+                    // Nahradit formulář informační zprávou
+                    document.querySelector('.room-container').innerHTML =
+                        '<div style="text-align: center; padding: 50px; background: rgba(0,0,0,0.3); border-radius: 10px;">' +
+                        '<h2>Projekce skončila</h2>' +
+                        '<p>Rezervace již není možná.</p>' +
+                        '</div>';
+                    document.querySelector('.selection-info').style.display = 'none';
+                    document.querySelector('.button-container').style.display = 'none';
+                } else {
+                    alert('Chyba: ' + availableSeatsResult.message);
+                }
+
+                disableAllSeats();
                 return;
             }
 
@@ -99,11 +110,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Pomocná funkce pro zakázání všech sedadel
+    function disableAllSeats() {
+        seats.forEach(seat => {
+            seat.classList.add("sold");
+            seat.style.cursor = "not-allowed";
+        });
+        reserveBtn.disabled = true;
+    }
+
     // Event listenery pro sedadla
     seats.forEach(seat => {
-        seat.addEventListener('click', function() {
-            if (!this.classList.contains('sold')) {
-                this.classList.toggle('selected');
+        seat.addEventListener("click", function() {
+            if (!this.classList.contains("sold")) {
+                this.classList.toggle("selected");
 
                 const seatId = this.id;
                 const seatPrice = parseInt(this.getAttribute('data-price'));

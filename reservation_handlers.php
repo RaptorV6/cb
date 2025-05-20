@@ -51,16 +51,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             case 'get_available_seats':
                 if (isset($_POST['screening_id'])) {
-                    $response = $reservationService->getAvailableSeats($_POST['screening_id']);
-                    // Note: getAvailableSeats returns the array directly on success, or an error object
+                    $screeningId = $_POST['screening_id'];
+                    $availableSeats = $reservationService->getAvailableSeats($screeningId);
+
+                    // Check if it's an error object with a specific message
+                    if (is_object($availableSeats) && isset($availableSeats->status) && $availableSeats->status === 'error' && strpos($availableSeats->message, 'Promítání již začalo') !== false) {
+                        // Propagate the error message
+                        $response = (array) $availableSeats; // Cast object to array
+                    } else {
+                        $response = $availableSeats; // Return the array of available seats
+                    }
                 } else {
-                     $response = ['status' => 'error', 'message' => 'Chybí ID promítání pro načtení míst.'];
+                    $response = ['status' => 'error', 'message' => 'Chybí ID promítání pro načtení míst.'];
                 }
                 break;
             
-            default:
-                 $response = ['status' => 'error', 'message' => 'Neznámá akce.'];
-                 break;
+             default:
+                $response = ['status' => 'error', 'message' => 'Neznámá akce.'];
+                break;
         }
     } catch (Exception $e) {
         error_log("Reservation Handler Error: " . $e->getMessage());

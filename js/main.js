@@ -140,7 +140,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 card.className = `movie-card${isPast ? ' past' : ''}${isUpcoming ? ' upcoming' : ''}`;
 
                 const times = formatTimes(movie.screening_time);
-                const dateRange = formatDateRange(movie.screening_date);
+                // Předáváme isPast do formatDateRange
+                const dateRange = formatDateRange(movie.screening_date, movie, isPast);
 
                 // Použití base64 obrázku z api_endpoint.php
                 const imgSrc = movie.image ? `data:image/jpeg;base64,${movie.image}` : 'https://via.placeholder.com/260x390?text=No+Image'; // Placeholder if no image
@@ -149,9 +150,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="movie-image">
                 <img src="${imgSrc}" alt="${movie.title}">
                 <div class="desktop-reserve">
-                    ${isPast ? 
+                    ${isPast ?
                         '<span class="ended-label">Projekce skončila</span>' :
-                        // Odstraněna podmínka isUpcoming, tlačítko je aktivní pro všechny budoucí
                         `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
                     }
                 </div>
@@ -169,9 +169,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <div class="mobile-reserve">
-                     ${isPast ? 
+                     ${isPast ?
                         '<span class="ended-label">Projekce skončila</span>' :
-                         // Odstraněna podmínka isUpcoming, tlačítko je aktivní pro všechny budoucí
                         `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
                     }
                 </div>
@@ -277,11 +276,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function formatDateRange(dateStr) {
+    function formatDateRange(dateStr, movie, isPastFilm) {
         const date = new Date(dateStr);
         const now = new Date();
         
-        if (date < now) {
+        // Použití isPastFilm parametru namísto prosté kontroly date < now
+        if (isPastFilm) {
             return `Skončilo ${date.toLocaleDateString('cs-CZ')}`;
         }
         
@@ -290,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const endDate = new Date(date);
-        endDate.setDate(endDate.getDate() + 14); // předpokládáme 14denní promítání
+        endDate.setDate(endDate.getDate() + 14);
         
         return `${date.toLocaleDateString('cs-CZ')} - ${endDate.toLocaleDateString('cs-CZ')}`;
     }

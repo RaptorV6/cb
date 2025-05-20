@@ -58,26 +58,48 @@ class Reservation {
      * @return array List of available seats or error message.
      */
     public function getAvailableSeats($screeningId) {
-        try {
-            $stmt = $this->pdo->prepare("
-                SELECT s.id_seat, s.seat_number
-                FROM seats s
-                WHERE s.id_seat NOT IN (
-                    SELECT r.id_seat 
-                    FROM reservations r 
-                    WHERE r.id_screening = :screeningId 
-                    AND r.status = 'active'
-                )
-                ORDER BY s.id_seat ASC -- Order seats consistently
-            ");
+         try {
+            $this->auth->requireLogin(); // Require login for this action
 
-            $stmt->execute(['screeningId' => $screeningId]);
-            // Vracíme přímo pole sedadel, ne status wrapper, pokud není chyba
+            $pdo = Database::getConnection();
+
+            // Check if the screening exists and has not yet started
+            $screeningCheckSql = "
+                SELECT screening_date, screening_time FROM screenings WHERE id_screening = :screening_id
+            ";
+            $screeningCheckStmt = $pdo->prepare($screeningCheckSql);
+            $screeningCheckStmt->execute(['screening_id' => $screeningId]);
+            $screening = $screeningCheckStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$screening) {
+                return (object) ['status' => 'error', 'message' => 'Neplatné ID promítání.'];
+            }
+
+            $screeningDateTimeStr = $screening['screening_date'] . ' ' . $screening['screening_time'];
+            $screeningDateTime = new DateTime($screeningDateTimeStr);
+            $now = new DateTime();
+
+            if ($screeningDateTime <= $now) {
+                return (object) ['status' => 'error', 'message' => 'Promítání již začalo.'];
+            }
+
+            // If screening is valid and has not started, proceed to fetch available seats
+            $sql = "
+                SELECT s.id_seat
+                FROM seats s
+                LEFT JOIN reservations r ON s.id_seat = r.id_seat AND r.id_screening = :screening_id AND r.status = 'active'
+                WHERE r.id_seat IS NULL
+            ";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(['screening_id' => $screeningId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         } catch (PDOException $e) {
-            error_log("Reservation Error (getAvailableSeats): " . $e->getMessage());
-            // Vracíme chybový wrapper, aby to JS mohl detekovat
-            return ['status' => 'error', 'message' => 'Chyba při načítání volných míst.'];
+            error_log("Reservation::getAvailableSeats - DB error: " . $e->getMessage());
+            return (object) ['status' => 'error', 'message' => 'Chyba při načítání dostupných míst.'];
+        } catch (Exception $e) {
+            error_log("Reservation::getAvailableSeats - General error: " . $e->getMessage());
+            return (object) ['status' => 'error', 'message' => 'Došlo k systémové chybě.'];
         }
     }
 
