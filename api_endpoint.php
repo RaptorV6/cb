@@ -29,7 +29,7 @@ function getAllMovies() {
                 screening_date,
                 screening_time::varchar as screening_time -- Ensure time is string
             FROM screenings 
-            ORDER BY screening_date DESC, screening_time ASC
+            ORDER BY screening_date DESC, screening_time DESC
         ");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
