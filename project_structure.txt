@@ -1,0 +1,30 @@
+/mnt/c/xampp-x64-7.3.33/htdocs/cb
+├── admin.php
+├── api_endpoint.php
+├── auth_handlers.php
+├── code_context.sh
+├── css
+│   ├── admin.css
+│   ├── movies.css
+│   ├── my-reservations.css
+│   ├── vestylu.css
+├── db_config.php
+├── includes
+├── index.php
+├── js
+│   ├── admin.js
+│   ├── common.js
+│   ├── login.js
+│   ├── main.js
+│   ├── my-reservations.js
+│   ├── reserve.js
+├── login.php
+├── my-reservations.php
+├── project_structure.txt
+├── reservation_handlers.php
+├── reserve.php
+├── session_check.php
+├── src
+│   ├── Auth.php
+│   ├── Database.php
+│   ├── Reservation.php
