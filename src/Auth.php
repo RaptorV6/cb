@@ -89,7 +89,7 @@ class Auth {
             return [
                 'status' => 'success',
                 'message' => 'Přihlášení úspěšné.',
-                'redirect' => $user['is_admin'] ? 'admin.php' : 'index.php'
+                  'redirect' => 'index.php' 
             ];
         } catch (PDOException $e) {
             error_log("Auth Error (loginUser): " . $e->getMessage());

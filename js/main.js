@@ -1,18 +1,18 @@
 document.addEventListener('DOMContentLoaded', function() {
+            // Add pagination state variables
+            let allMovies = []; // Store all movies for pagination
+            let currentPage = 1;
+            const moviesPerPage = 8; // Adjust based on your design preference
+
             // Načtení filmů při startu
             loadMovies();
 
             // Elementy pro vyhledávání a filtrování
             const searchInput = document.getElementById('search-input');
-            const searchBtn = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn'); // Fixed selector
             const filterSelect = document.getElementById('filter-select');
             const moviesWrapper = document.getElementById('movies-wrapper');
-            const paginationBtns = document.querySelectorAll('.pagination-btn');
-            const paginationNext = document.querySelector('.pagination-next');
-
-            // User menu
-            const userIcon = document.getElementById('user-icon');
-            const dropdownMenu = document.getElementById('dropdown-menu');
+            const paginationContainer = document.querySelector('.pagination');
 
             // Event listeners pro vyhledávání a filtrování
             searchBtn.addEventListener('click', filterMovies);
@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (e.key === 'Enter') filterMovies();
             });
             filterSelect.addEventListener('change', filterMovies);
-
 
             // Načtení filmů
             async function loadMovies() {
@@ -53,11 +52,131 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     if (Array.isArray(movies)) {
-                        updateMoviesUI(movies);
+                        // Store all movies for pagination
+                        allMovies = movies;
+                        // Update pagination UI
+                        setupPagination();
+                        // Display first page of movies
+                        displayMoviesPage(currentPage);
                     }
                 } catch (error) {
                     console.error('Chyba při načítání filmů:', error);
                     showError('Nepodařilo se načíst filmy. Zkuste to prosím znovu.');
+                }
+            }
+
+            // Function to display a specific page of movies
+            function displayMoviesPage(page) {
+                // Calculate start and end indices
+                const startIndex = (page - 1) * moviesPerPage;
+                const endIndex = Math.min(startIndex + moviesPerPage, allMovies.length);
+
+                // Get movies for current page
+                const moviesToShow = allMovies.slice(startIndex, endIndex);
+
+                // Display these movies
+                updateMoviesUI(moviesToShow);
+
+                // Update active page button
+                updateActivePaginationButton();
+            }
+
+            // Setup pagination based on total movies
+            function setupPagination() {
+                // Calculate total pages
+                const totalPages = Math.ceil(allMovies.length / moviesPerPage);
+
+                // Clear pagination container
+                paginationContainer.innerHTML = '';
+
+                // Add page buttons
+                if (totalPages <= 5) {
+                    // Show all pages
+                    for (let i = 1; i <= totalPages; i++) {
+                        addPaginationButton(i);
+                    }
+                } else {
+                    // Show first page
+                    addPaginationButton(1);
+
+                    // Show dots or surrounding pages
+                    if (currentPage <= 3) {
+                        // Close to the beginning
+                        for (let i = 2; i <= 4; i++) {
+                            if (i <= totalPages) addPaginationButton(i);
+                        }
+                        if (totalPages > 4) {
+                            addPaginationDots();
+                            addPaginationButton(totalPages);
+                        }
+                    } else if (currentPage >= totalPages - 2) {
+                        // Close to the end
+                        addPaginationDots();
+                        for (let i = totalPages - 3; i <= totalPages; i++) {
+                            if (i > 1) addPaginationButton(i);
+                        }
+                    } else {
+                        // Middle pages
+                        addPaginationDots();
+                        addPaginationButton(currentPage - 1);
+                        addPaginationButton(currentPage);
+                        addPaginationButton(currentPage + 1);
+                        addPaginationDots();
+                        addPaginationButton(totalPages);
+                    }
+                }
+
+                // Add next button
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'pagination-next';
+                nextBtn.innerHTML = '<span>&#8594;</span>';
+                nextBtn.addEventListener('click', goToNextPage);
+                paginationContainer.appendChild(nextBtn);
+            }
+
+            // Helper function to add a pagination button
+            function addPaginationButton(pageNum) {
+                const btn = document.createElement('button');
+                btn.className = 'pagination-btn';
+                if (pageNum === currentPage) {
+                    btn.classList.add('active');
+                }
+                btn.textContent = pageNum;
+                btn.addEventListener('click', function() {
+                    currentPage = pageNum;
+                    displayMoviesPage(currentPage);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                paginationContainer.appendChild(btn);
+            }
+
+            // Helper function to add pagination dots
+            function addPaginationDots() {
+                const dots = document.createElement('span');
+                dots.className = 'pagination-dots';
+                dots.textContent = '...';
+                paginationContainer.appendChild(dots);
+            }
+
+            // Update the active pagination button
+            function updateActivePaginationButton() {
+                const buttons = paginationContainer.querySelectorAll('.pagination-btn');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === currentPage) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+
+            // Go to next page
+            function goToNextPage() {
+                const totalPages = Math.ceil(allMovies.length / moviesPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    displayMoviesPage(currentPage);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             }
 
@@ -87,6 +206,72 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 setupMobileCardClicks();
                 setupTooltips();
+            }
+
+            // Filtrování filmů
+            function filterMovies() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const filterValue = filterSelect.value;
+
+                // Filter the allMovies array
+                const filteredMovies = allMovies.filter(movie => {
+                    const title = movie.title.toLowerCase();
+                    const genre = movie.genre.toLowerCase();
+
+                    // Convert screening_date and screening_time to Date object
+                    const screeningDateTime = new Date(movie.screening_date + 'T' + movie.screening_time);
+                    const now = new Date();
+                    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+                    const isPast = screeningDateTime < now;
+                    const isUpcoming = screeningDateTime > sevenDaysFromNow;
+
+                    let matchesFilter = true;
+                    switch (filterValue) {
+                        case 'upcoming':
+                            matchesFilter = isUpcoming;
+                            break;
+                        case 'now':
+                            matchesFilter = !isPast && !isUpcoming;
+                            break;
+                        case 'past':
+                            matchesFilter = isPast;
+                            break;
+                    }
+
+                    const matchesSearch = title.includes(searchTerm) || genre.includes(searchTerm);
+                    return matchesSearch && matchesFilter;
+                });
+
+                // Update the UI with filtered results
+                if (filteredMovies.length === 0) {
+                    handleNoResults(0);
+                } else {
+                    // Reset to first page whenever filters change
+                    currentPage = 1;
+                    // Update pagination based on new filtered array
+                    allMovies = filteredMovies;
+                    setupPagination();
+                    // Display first page
+                    displayMoviesPage(currentPage);
+                }
+            }
+
+            // Zobrazení/skrytí zprávy o nenalezených filmech
+            function handleNoResults(visibleCount) {
+                const noResultsDiv = document.getElementById('no-results');
+                if (visibleCount === 0) {
+                    noResultsDiv.style.display = 'flex'; // Použít existující div
+                    moviesWrapper.style.display = 'none'; // Skrýt wrapper, pokud nejsou výsledky
+                } else {
+                    noResultsDiv.style.display = 'none';
+                    moviesWrapper.style.display = ''; // Zobrazit wrapper (bude grid nebo flex podle CSS)
+                }
+            }
+
+            // Helper function to show error
+            function showError(message) {
+                alert(message); // Simple error display, you could enhance this
             }
 
             // Vytvoření karty filmu
@@ -135,55 +320,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return card;
     }
 
-    // Filtrování filmů
-    function filterMovies() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const filterValue = filterSelect.value;
-        const cards = document.querySelectorAll('.movie-card');
-
-        let visibleCount = 0;
-        cards.forEach(card => {
-            const title = card.querySelector('.movie-title').textContent.toLowerCase();
-            const genre = card.querySelector('.movie-genre').textContent.toLowerCase();
-            const isPast = card.classList.contains('past');
-            const isUpcoming = card.classList.contains('upcoming');
-
-            let matchesFilter = true;
-            switch (filterValue) {
-                case 'upcoming':
-                    matchesFilter = isUpcoming;
-                    break;
-                case 'now':
-                    matchesFilter = !isPast && !isUpcoming;
-                    break;
-                case 'past':
-                    matchesFilter = isPast;
-                    break;
-            }
-
-            const matchesSearch = title.includes(searchTerm) || genre.includes(searchTerm);
-            const shouldShow = matchesSearch && matchesFilter;
-            
-            card.style.display = shouldShow ? '' : 'none';
-            if (shouldShow) visibleCount++;
-        });
-
-        // Zobrazení zprávy, pokud nejsou nalezeny žádné filmy
-        handleNoResults(visibleCount);
-    }
-
-    // Zobrazení/skrytí zprávy o nenalezených filmech
-    function handleNoResults(visibleCount) {
-        const noResultsDiv = document.getElementById('no-results');
-        if (visibleCount === 0) {
-            noResultsDiv.style.display = 'flex'; // Použít existující div
-            moviesWrapper.style.display = 'none'; // Skrýt wrapper, pokud nejsou výsledky
-        } else {
-            noResultsDiv.style.display = 'none';
-            moviesWrapper.style.display = ''; // Zobrazit wrapper (bude grid nebo flex podle CSS)
-        }
-    }
-
     // Nastavení klikání na karty na mobilních zařízeních
     function setupMobileCardClicks() {
         if (window.innerWidth < 768) {
@@ -203,25 +339,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Pagination
-    paginationBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            paginationBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Tooltip pro dlouhé názvy
+    function setupTooltips() {
+        const movieTitles = document.querySelectorAll('.movie-title');
+        movieTitles.forEach(title => {
+            if (title.scrollHeight > title.clientHeight) {
+                title.setAttribute('title', title.textContent);
+            }
         });
-    });
+    }
 
-    paginationNext.addEventListener('click', function() {
-        const activeBtn = document.querySelector('.pagination-btn.active');
-        const nextBtn = activeBtn.nextElementSibling;
-        
-        if (nextBtn && nextBtn.classList.contains('pagination-btn')) {
-            nextBtn.click();
-        }
-    });
-
-    // Helper funkce
+    // Helper functions from original code
     function formatTimes(timeStr) {
         try {
             const times = JSON.parse(timeStr);
@@ -250,27 +378,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${date.toLocaleDateString('cs-CZ')} - ${endDate.toLocaleDateString('cs-CZ')}`;
     }
 
-    // Tooltip pro dlouhé názvy
-    function setupTooltips() {
-        const movieTitles = document.querySelectorAll('.movie-title');
-        movieTitles.forEach(title => {
-            if (title.scrollHeight > title.clientHeight) {
-                title.setAttribute('title', title.textContent);
-            }
-        });
-    }
-
     // Event listener pro změnu velikosti okna
     window.addEventListener('resize', function() {
         setupMobileCardClicks();
         setupTooltips();
     });
-
-    // Event listener pro změnu velikosti okna
-    window.addEventListener('resize', function() {
-        setupMobileCardClicks();
-        setupTooltips(); // Aktualizace tooltipů při změně velikosti
-    });
-
-    // Inicializace tooltipů se již volá v updateMoviesUI po načtení filmů
 });

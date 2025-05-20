@@ -402,32 +402,34 @@ function updateMovie($id, $data) {
  */
 function deleteMovie($id) {
     try {
-        $pdo = Database::getConnection(); // Use Database class
+        $pdo = Database::getConnection();
         
-        // Check for related reservations first
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM reservations WHERE id_screening = :id AND status = 'active'");
+        // Začneme transakci pro zachování konzistence dat
+        $pdo->beginTransaction();
+        
+        // Nejprve smažeme všechny související rezervace
+        $stmt = $pdo->prepare("DELETE FROM reservations WHERE id_screening = :id");
         $stmt->execute(['id' => $id]);
+        $reservationsDeleted = $stmt->rowCount();
         
-        if ($stmt->fetchColumn() > 0) {
-            return ['status' => 'error', 'message' => 'Film nelze smazat, protože k němu existují aktivní rezervace.'];
-        }
-        
-        // Delete the screening
+        // Poté smažeme film
         $stmt = $pdo->prepare("DELETE FROM screenings WHERE id_screening = :id");
         $stmt->execute(['id' => $id]);
         
-        // Check if a row was actually deleted
         if ($stmt->rowCount() > 0) {
-            return ['status' => 'success', 'message' => 'Film byl úspěšně smazán.'];
+            $pdo->commit();
+            $message = 'Film byl úspěšně smazán.';
+            if ($reservationsDeleted > 0) {
+                $message .= ' Bylo také smazáno ' . $reservationsDeleted . ' souvisejících rezervací.';
+            }
+            return ['status' => 'success', 'message' => $message];
         } else {
+            $pdo->rollBack();
             return ['status' => 'error', 'message' => 'Film s daným ID nebyl nalezen nebo již byl smazán.'];
         }
     } catch (PDOException $e) {
-         error_log("API Error (deleteMovie): " . $e->getMessage());
-        // Check for foreign key constraint violation (though we checked reservations, maybe others exist)
-        if ($e->getCode() == '23503') { // PostgreSQL foreign key violation code
-             return ['status' => 'error', 'message' => 'Film nelze smazat kvůli existujícím závislostem (např. rezervace).'];
-        }
+        $pdo->rollBack();
+        error_log("API Error (deleteMovie): " . $e->getMessage());
         return ['status' => 'error', 'message' => 'Chyba při mazání filmu: ' . $e->getMessage()];
     }
 }

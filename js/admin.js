@@ -11,7 +11,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const movieIdInput = document.getElementById('movie-id'); // Skryté pole pro ID
             const modalTitle = movieModal.querySelector('.modal-title'); // Nadpis modalu
 
+            // Add pagination state variables
             let allMoviesData = []; // Pole pro uložení načtených dat filmů
+            let currentPage = 1;
+            const moviesPerPage = 10; // Number of movies per page
 
             // Načtení filmů při startu
             loadMovies();
@@ -85,8 +88,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 formData.append('genre', genres.join(', ')); // Odeslat jako string oddělený čárkou
 
-                // Časy promítání - odstraněno
-
                 // Přidání obrázku do FormData, pokud byl vybrán
                 const imageInput = document.getElementById('movie-image');
                 const imagePreview = imageUpload.querySelector('img');
@@ -105,10 +106,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Pokud není nový soubor, ale je náhled (při úpravě), pošli stávající base64
                     formData.append('image', imagePreview.src);
                 }
-
-
-                // Debug výpis - POZOR: Může logovat base64 obrázek!
-                // console.log('Odesílaná data:', Object.fromEntries(formData));
 
                 try {
                     // Použít api_endpoint.php
@@ -186,11 +183,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Přidávání časů promítání - odstraněno
-
             // Načtení filmů z API (api_endpoint.php)
             async function loadMovies() {
-                // Zobrazit loading indikátor (předpokládáme existenci #movies-loading)
+                // Zobrazit loading indikátor
                 const loadingIndicator = document.getElementById('movies-loading');
                 const tableBody = document.querySelector('.admin-table tbody');
                 const cardsContainer = document.querySelector('.movies-cards');
@@ -216,7 +211,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     if (Array.isArray(movies)) {
-                        updateMoviesUI(movies);
+                        // Setup pagination
+                        setupPagination();
+                        // Display first page
+                        displayMoviesPage(currentPage);
                     } else {
                         console.error('Neplatná odpověď ze serveru:', movies);
                         alert('Obdržena neplatná odpověď ze serveru.');
@@ -226,6 +224,72 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Chyba při komunikaci se serverem při načítání filmů.');
                     if (loadingIndicator) loadingIndicator.style.display = 'none'; // Skrýt loading i při chybě
                 }
+            }
+
+            // Function to display a specific page of movies
+            function displayMoviesPage(page) {
+                const startIndex = (page - 1) * moviesPerPage;
+                const endIndex = Math.min(startIndex + moviesPerPage, allMoviesData.length);
+                const moviesToShow = allMoviesData.slice(startIndex, endIndex);
+
+                updateMoviesUI(moviesToShow);
+                updateActivePaginationButton();
+            }
+
+            // Setup pagination based on total movies
+            function setupPagination() {
+                const totalPages = Math.ceil(allMoviesData.length / moviesPerPage);
+                const paginationContainer = document.querySelector('.pagination');
+
+                // Clear pagination container
+                paginationContainer.innerHTML = '';
+
+                // Add page buttons
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                        const btn = document.createElement('button');
+                        btn.className = 'page-btn';
+                        if (i === currentPage) btn.classList.add('active');
+                        btn.textContent = i;
+                        btn.addEventListener('click', function() {
+                            currentPage = i;
+                            displayMoviesPage(currentPage);
+                        });
+                        paginationContainer.appendChild(btn);
+                    } else if ((i === 2 && currentPage > 3) || (i === totalPages - 1 && currentPage < totalPages - 2)) {
+                        // Add dots for pagination
+                        const dots = document.createElement('span');
+                        dots.className = 'pagination-dots';
+                        dots.textContent = '...';
+                        paginationContainer.appendChild(dots);
+                    }
+                }
+
+                // Add next button if there are pages
+                if (totalPages > 0) {
+                    const nextBtn = document.createElement('button');
+                    nextBtn.className = 'next-btn';
+                    nextBtn.innerHTML = '→';
+                    nextBtn.addEventListener('click', function() {
+                        if (currentPage < totalPages) {
+                            currentPage++;
+                            displayMoviesPage(currentPage);
+                        }
+                    });
+                    paginationContainer.appendChild(nextBtn);
+                }
+            }
+
+            // Update the active pagination button
+            function updateActivePaginationButton() {
+                const buttons = document.querySelectorAll('.page-btn');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === currentPage) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
             }
 
             // Aktualizace UI s filmy
@@ -251,7 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </td>
                 <td>${movie.genre || 'N/A'}</td>
                 <td>${movie.duration} min</td>
-                <td>${formatDateTime(movie.screening_datetime)}</td>
+                <td>${formatDateTime(movie.screening_date, movie.screening_time)}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="edit-btn" data-id="${movie.id_screening}">Upravit</button>
@@ -277,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="movie-details">
                     <div class="movie-datetime">
-                        <span class="datetime-label">Promítání:</span> ${formatDateTime(movie.screening_datetime)}
+                        <span class="datetime-label">Promítání:</span> ${formatDateTime(movie.screening_date, movie.screening_time)}
                     </div>
                 </div>
                 <div class="movie-actions">
@@ -406,43 +470,40 @@ document.addEventListener('DOMContentLoaded', function() {
             <div>Nahrát obrázek</div>
         `;
         document.getElementById('movie-datetime').value = ''; // Reset datetime pole
-
-        // Reset časů - odstraněno
     }
 
     // Pomocná funkce pro formátování data a času
-    function formatDateTime(dateTimeStr) {
-        if (!dateTimeStr) return 'N/A';
+    function formatDateTime(dateStr, timeStr) {
+        if (!dateStr) return 'N/A';
+        
         try {
-            const date = new Date(dateTimeStr);
-            // Ověření platnosti data
-            if (isNaN(date.getTime())) {
-                // Pokud je formát nekompatibilní s new Date(), zkusíme parsovat manuálně
-                // Očekáváme formát YYYY-MM-DD HH:MM:SS nebo YYYY-MM-DDTHH:MM
-                const parts = dateTimeStr.split(/[\sT]/);
-                if (parts.length >= 2) {
-                    const dateParts = parts[0].split('-');
-                    const timeParts = parts[1].split(':');
-                    if (dateParts.length === 3 && timeParts.length >= 2) {
-                         // Sestavení data pro český formát
-                         return `${parseInt(dateParts[2])}.${parseInt(dateParts[1])}.${dateParts[0]} ${timeParts[0]}:${timeParts[1]}`;
+            const date = new Date(dateStr);
+            
+            // Pokud máme i čas, přidáme ho
+            let timeFormatted = '';
+            if (timeStr) {
+                // Pokud je time JSON string, zpracujeme ho
+                try {
+                    const parsedTime = JSON.parse(timeStr);
+                    if (Array.isArray(parsedTime) && parsedTime.length > 0) {
+                        timeFormatted = ' ' + parsedTime[0].substring(0, 5); // HH:MM
+                    } else {
+                        timeFormatted = ' ' + timeStr.substring(0, 5); // HH:MM
                     }
+                } catch (e) {
+                    // Pokud nejde o JSON, použijeme přímo
+                    timeFormatted = ' ' + timeStr.substring(0, 5); // HH:MM
                 }
-                return dateTimeStr; // Fallback na původní string, pokud parsování selže
             }
-            // Použití Intl pro lokalizovaný formát
-            const options = {
-                year: 'numeric', month: 'numeric', day: 'numeric',
-                hour: '2-digit', minute: '2-digit'
-            };
-            return new Intl.DateTimeFormat('cs-CZ', options).format(date);
+            
+            // Použití Intl pro lokalizovaný formát data
+            const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            return new Intl.DateTimeFormat('cs-CZ', options).format(date) + timeFormatted;
         } catch (e) {
-            console.error("Chyba formátování data:", dateTimeStr, e);
-            return dateTimeStr; // Vrať původní string v případě chyby
+            console.error("Chyba formátování data:", e);
+            return dateStr; // Vrať původní string v případě chyby
         }
     }
-
-    // Init - odstraněno volání addTimeInput
 
     // --- Funkce pro úpravu filmu ---
     function editMovie(movieData) {
@@ -454,35 +515,31 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('movie-title').value = movieData.title || '';
         document.getElementById('movie-duration').value = movieData.duration || '';
         document.getElementById('movie-description').value = movieData.description || '';
+        
         // Vyplnit datum a čas - potřebujeme formát YYYY-MM-DDTHH:MM
-        if (movieData.screening_datetime) {
-             try {
-                 const date = new Date(movieData.screening_datetime);
-                 if (!isNaN(date.getTime())) {
-                     // Formátování pro datetime-local input (YYYY-MM-DDTHH:MM)
-                     const year = date.getFullYear();
-                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                     const day = date.getDate().toString().padStart(2, '0');
-                     const hours = date.getHours().toString().padStart(2, '0');
-                     const minutes = date.getMinutes().toString().padStart(2, '0');
-                     document.getElementById('movie-datetime').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-                 } else {
-                     // Pokud new Date() selže, zkusíme zachovat původní hodnotu, pokud je v očekávaném formátu
-                     if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(movieData.screening_datetime)) {
-                         document.getElementById('movie-datetime').value = movieData.screening_datetime;
-                     } else {
-                         console.warn("Nepodařilo se převést screening_datetime do formátu YYYY-MM-DDTHH:MM:", movieData.screening_datetime);
-                         document.getElementById('movie-datetime').value = ''; // Resetovat, pokud formát není správný
-                     }
-                 }
-             } catch (e) {
-                 console.error("Chyba při nastavování data a času pro úpravu:", e);
-                 document.getElementById('movie-datetime').value = '';
-             }
+        if (movieData.screening_date) {
+            try {
+                let timeStr = movieData.screening_time || '00:00:00';
+                // Pokud je čas JSON string s polem, extrahujeme první čas
+                try {
+                    const parsedTime = JSON.parse(timeStr);
+                    if (Array.isArray(parsedTime) && parsedTime.length > 0) {
+                        timeStr = parsedTime[0];
+                    }
+                } catch (e) {
+                    // Pokud nejde o JSON, použijeme přímo
+                }
+                
+                // Formátování pro datetime-local input (YYYY-MM-DDTHH:MM)
+                const dateTimeStr = `${movieData.screening_date}T${timeStr.substring(0, 5)}`;
+                document.getElementById('movie-datetime').value = dateTimeStr;
+            } catch (e) {
+                console.error("Chyba při nastavování data a času pro úpravu:", e);
+                document.getElementById('movie-datetime').value = '';
+            }
         } else {
-             document.getElementById('movie-datetime').value = '';
+            document.getElementById('movie-datetime').value = '';
         }
-
 
         // Vyplnit žánry
         genreTags.innerHTML = ''; // Nejprve vyčistit tagy
@@ -490,8 +547,6 @@ document.addEventListener('DOMContentLoaded', function() {
             movieData.genre.split(',').forEach(g => addGenreTag(g.trim()));
         }
         document.getElementById('movie-genre').value = ''; // Vyčistit input pro žánr
-
-        // Časy - odstraněno
 
         // Zobrazit náhled obrázku, pokud existuje
         if (movieData.image) {
@@ -502,5 +557,4 @@ document.addEventListener('DOMContentLoaded', function() {
         movieModal.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
-
 });
