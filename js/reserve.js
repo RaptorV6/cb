@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             // Přidání speciální jmenovky pro vlastní rezervaci
                             const usernameLabel = document.createElement('div');
                             usernameLabel.className = 'username-label user-label';
-                            usernameLabel.textContent = 'VAŠE MÍSTO';
+                            usernameLabel.textContent = occupiedSeat.username;
                             seat.insertBefore(usernameLabel, seat.firstChild);
                         } else {
                             // Obsazené místo jiným uživatelem
