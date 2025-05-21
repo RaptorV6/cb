@@ -35,12 +35,10 @@
             </div>
             <div class="filter-box">
                 <select id="filter-select">
-                    <option value="all">Všechny filmy</option>
-                    <option value="upcoming">Připravované</option>
-                    <option value="now">Nyní promítáme</option>
-                    <option value="past">Archiv</option>
-                </select>
-            </div>
+        <option value="now">Aktuální</option>
+        <option value="past">Historie</option>
+    </select>
+</div>
         </div>
 
         <!-- Loading indikátor -->

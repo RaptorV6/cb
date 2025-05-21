@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="seats-grid">
                 <div class="seat">
                     <span class="seat-number">${reservation.seat_number}</span>
-                    <span class="seat-label">Sedadlo</span>
+                    
                 </div>
             </div>
         </div>

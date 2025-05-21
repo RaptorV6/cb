@@ -45,10 +45,9 @@ requireLogin(true); // Vyžaduje admin práva
                     <button class="search-btn">🔍</button>
                 </div>
                 <select class="filter-select">
-                    <option value="all">Všechny filmy</option>
-                    <option value="active">Aktuální</option>
-                    <option value="archive">Archiv</option>
-                </select>
+    <option value="active">Aktuální</option>
+    <option value="archive">Historie</option>
+</select>
             </div>
 
             <!-- Loading stav -->
@@ -193,4 +192,5 @@ if ($toastMessage):
 </script>
 <?php endif; ?>
 </body>
+</html>
 </html>

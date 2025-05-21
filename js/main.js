@@ -66,29 +66,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Function to display a specific page of movies
-            function displayMoviesPage(page) {
+            function displayMoviesPage(page, movies) {
+                // Use the provided movies array or fallback to allMovies
+                const moviesToShow = movies || allMovies;
                 // Calculate start and end indices
                 const startIndex = (page - 1) * moviesPerPage;
-                const endIndex = Math.min(startIndex + moviesPerPage, allMovies.length);
-
-                // Get movies for current page
-                const moviesToShow = allMovies.slice(startIndex, endIndex);
-
-                // Display these movies
-                updateMoviesUI(moviesToShow);
-
+                const endIndex = Math.min(startIndex + moviesPerPage, moviesToShow.length);
+                const pagesToShow = moviesToShow.slice(startIndex, endIndex);
+                updateMoviesUI(pagesToShow);
                 // Update active page button
                 updateActivePaginationButton();
             }
 
             // Setup pagination based on total movies
-            function setupPagination() {
-                // Calculate total pages
-                const totalPages = Math.ceil(allMovies.length / moviesPerPage);
-
+            function setupPagination(movies) {
+                // Use the provided movies array or fallback to allMovies
+                const moviesToShow = movies || allMovies;
+                const totalPages = Math.ceil(moviesToShow.length / moviesPerPage);
                 // Clear pagination container
                 paginationContainer.innerHTML = '';
-
                 // Add page buttons
                 if (totalPages <= 5) {
                     // Show all pages
@@ -98,7 +94,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     // Show first page
                     addPaginationButton(1);
-
                     // Show dots or surrounding pages
                     if (currentPage <= 3) {
                         // Close to the beginning
@@ -125,7 +120,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         addPaginationButton(totalPages);
                     }
                 }
-
                 // Add next button
                 const nextBtn = document.createElement('button');
                 nextBtn.className = 'pagination-next';
@@ -144,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.textContent = pageNum;
                 btn.addEventListener('click', function() {
                     currentPage = pageNum;
-                    displayMoviesPage(currentPage);
+                    displayMoviesPage(currentPage, movies);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
                 paginationContainer.appendChild(btn);
@@ -153,8 +147,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Helper function to add pagination dots
             function addPaginationDots() {
                 const dots = document.createElement('span');
-                dots.className = 'pagination-dots';
-                dots.textContent = '...';
+                dots.className = "pagination-dots";
+                dots.textContent = "...";
                 paginationContainer.appendChild(dots);
             }
 
@@ -212,32 +206,30 @@ document.addEventListener('DOMContentLoaded', function() {
             function filterMovies() {
                 const searchTerm = searchInput.value.toLowerCase();
                 const filterValue = filterSelect.value;
+                const now = new Date();
 
-                // Filter the allMovies array
-                const filteredMovies = allMovies.filter(movie => {
+                // Make a copy of allMovies so we don't lose the original data
+                const moviesToFilter = [...allMovies];
+
+                // Filter the movies array
+                const filteredMovies = moviesToFilter.filter(movie => {
                     const title = movie.title.toLowerCase();
                     const genre = movie.genre.toLowerCase();
 
                     // Convert screening_date and screening_time to Date object
                     const screeningDateTime = new Date(movie.screening_date + 'T' + movie.screening_time);
-                    const now = new Date();
-                    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
+                    // Determine if movie is past
                     const isPast = screeningDateTime < now;
-                    const isUpcoming = screeningDateTime > sevenDaysFromNow;
 
+                    // Match based on filter selection
                     let matchesFilter = true;
-                    switch (filterValue) {
-                        case 'upcoming':
-                            matchesFilter = isUpcoming;
-                            break;
-                        case 'now':
-                            matchesFilter = !isPast && !isUpcoming;
-                            break;
-                        case 'past':
-                            matchesFilter = isPast;
-                            break;
+                    if (filterValue === 'past') {
+                        matchesFilter = isPast;
+                    } else if (filterValue === 'now') {
+                        matchesFilter = !isPast; // Not past means current
                     }
+                    // 'all' option would keep matchesFilter as true
 
                     const matchesSearch = title.includes(searchTerm) || genre.includes(searchTerm);
                     return matchesSearch && matchesFilter;
@@ -247,13 +239,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (filteredMovies.length === 0) {
                     handleNoResults(0);
                 } else {
+                    // Show the filtered movies
+                    document.getElementById('no-results').style.display = 'none';
+                    document.getElementById('movies-wrapper').style.display = '';
+
                     // Reset to first page whenever filters change
                     currentPage = 1;
-                    // Update pagination based on new filtered array
-                    allMovies = filteredMovies;
-                    setupPagination();
+                    // Update filtered movies but DON't replace the original allMovies
+                    const tempMovies = filteredMovies;
+                    setupPagination(tempMovies);
                     // Display first page
-                    displayMoviesPage(currentPage);
+                    displayMoviesPage(currentPage, tempMovies);
                 }
             }
 
