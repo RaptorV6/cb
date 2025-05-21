@@ -21,12 +21,14 @@ requireLogin(true); // Vyžaduje admin práva
     $userMenu = getUserMenuHTML(); // Získá HTML pro menu podle stavu přihlášení
     ?>
 
-    <header class="site-header">
-        <div class="logo">
+<header class="site-header">
+    <div class="logo">
+        <a href="index.php" style="text-decoration: none; color: inherit;">
             <h1>CineBukay</h1>
-        </div>
-        <?php echo $userMenu; ?>
-    </header>
+        </a>
+    </div>
+    <?php echo $userMenu; ?>
+</header>
     
     <!-- Navigace odstraněna -->
     
@@ -44,10 +46,9 @@ requireLogin(true); // Vyžaduje admin práva
                     <button class="search-btn">🔍</button>
                 </div>
                 <select class="filter-select">
-                    <option value="all">Všechny filmy</option>
-                    <option value="active">Aktuální</option>
-                    <option value="archive">Archiv</option>
-                </select>
+    <option value="active">Aktuální</option>
+    <option value="archive">Historie</option>
+</select>
             </div>
 
             <!-- Loading stav -->
@@ -192,6 +193,7 @@ if ($toastMessage):
 </script>
 <?php endif; ?>
 </body>
+</html>
 </html>
 
 // File: ./api_endpoint.php
@@ -1290,16 +1292,14 @@ h2 {
 /* Karta filmu - výchozí horizontální zobrazení pro mobil */
 
 .movie-card {
-    background-color: rgba(16, 16, 25, 0.5);
-    /* Trochu světlejší pozadí */
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 20px rgba(12, 184, 0, 0.05);
-    /* Základní zelený glow */
+    background-color: rgba(25, 25, 40, 0.7);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 30px rgba(12, 184, 0, 0.2);
     transition: all 0.3s ease;
 }
 
 .movie-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), 0 0 30px rgba(12, 184, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5), 0 0 25px rgba(30, 210, 30, 0.15);
     /* Silnější glow při hoveru */
 }
 
@@ -1321,6 +1321,8 @@ h2 {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    filter: brightness(1.2) contrast(1.15);
+    transition: filter 0.3s ease;
 }
 
 
@@ -1342,6 +1344,9 @@ h2 {
     -webkit-box-orient: vertical;
     overflow: hidden;
     min-height: 1.3em;
+    color: #ffffff;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    font-weight: 600;
 }
 
 .movie-details {
@@ -1349,20 +1354,24 @@ h2 {
     flex-direction: column;
     gap: 8px;
     flex: 1;
+    background-color: rgba(20, 20, 35, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
 }
 
 .movie-meta {
     display: flex;
     gap: 10px;
     font-size: 0.85rem;
-    color: #ccc;
+    color: #e0e0e0;
 }
 
 .movie-time {
     display: flex;
     flex-direction: column;
     font-size: 0.85rem;
-    color: #fff;
+    color: #e0e0e0;
     background-color: rgba(255, 255, 255, 0.1);
     padding: 8px 10px;
     border-radius: 5px;
@@ -1576,6 +1585,7 @@ h2 {
     }
     .movie-card:hover .movie-image img {
         transform: scale(1.05);
+        filter: brightness(1.2) contrast(1.15);
     }
     /* Přepnutí tlačítek rezervace */
     .mobile-reserve {
@@ -2237,6 +2247,31 @@ h2 {
     font-family: "Lato", sans-serif;
 }
 
+.filter-select,
+#filter-select {
+    width: 100%;
+    padding: 12px;
+    background-color: rgba(16, 16, 25, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 20px;
+}
+
+.filter-select:focus,
+#filter-select:focus {
+    outline: none;
+    background-color: rgba(16, 16, 25, 0.7);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
 
 /* Toto přidejte do vestylu.css, pokud tam ještě není */
 
@@ -2532,6 +2567,28 @@ body {
 }
 
 .reserve-btn:disabled {
+    background-color: #333;
+    cursor: not-allowed;
+    color: #666;
+}
+
+.login-btn {
+    padding: 12px 30px;
+    text-decoration: none;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.login-btn:hover {
+    background-color: #09a100;
+}
+
+.login-btn:disabled {
     background-color: #333;
     cursor: not-allowed;
     color: #666;
@@ -3094,12 +3151,14 @@ return [ // Use return instead of defining a global variable
     $userMenu = getUserMenuHTML(); // Získá HTML pro menu podle stavu přihlášení
     ?>
 
-    <header class="site-header">
-        <div class="logo">
+<header class="site-header">
+    <div class="logo">
+        <a href="index.php" style="text-decoration: none; color: inherit;">
             <h1>CineBukay</h1>
-        </div>
-        <?php echo $userMenu; ?>
-    </header>
+        </a>
+    </div>
+    <?php echo $userMenu; ?>
+</header>
 
     <main class="movies-container">
         <div class="filter-controls">
@@ -3111,12 +3170,10 @@ return [ // Use return instead of defining a global variable
             </div>
             <div class="filter-box">
                 <select id="filter-select">
-                    <option value="all">Všechny filmy</option>
-                    <option value="upcoming">Připravované</option>
-                    <option value="now">Nyní promítáme</option>
-                    <option value="past">Archiv</option>
-                </select>
-            </div>
+        <option value="now">Aktuální</option>
+        <option value="past">Historie</option>
+    </select>
+</div>
         </div>
 
         <!-- Loading indikátor -->
@@ -3982,29 +4039,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Function to display a specific page of movies
-            function displayMoviesPage(page) {
+            function displayMoviesPage(page, movies) {
+                // Use the provided movies array or fallback to allMovies
+                const moviesToShow = movies || allMovies;
                 // Calculate start and end indices
                 const startIndex = (page - 1) * moviesPerPage;
-                const endIndex = Math.min(startIndex + moviesPerPage, allMovies.length);
-
-                // Get movies for current page
-                const moviesToShow = allMovies.slice(startIndex, endIndex);
-
-                // Display these movies
-                updateMoviesUI(moviesToShow);
-
+                const endIndex = Math.min(startIndex + moviesPerPage, moviesToShow.length);
+                const pagesToShow = moviesToShow.slice(startIndex, endIndex);
+                updateMoviesUI(pagesToShow);
                 // Update active page button
                 updateActivePaginationButton();
             }
 
             // Setup pagination based on total movies
-            function setupPagination() {
-                // Calculate total pages
-                const totalPages = Math.ceil(allMovies.length / moviesPerPage);
-
+            function setupPagination(movies) {
+                // Use the provided movies array or fallback to allMovies
+                const moviesToShow = movies || allMovies;
+                const totalPages = Math.ceil(moviesToShow.length / moviesPerPage);
                 // Clear pagination container
                 paginationContainer.innerHTML = '';
-
                 // Add page buttons
                 if (totalPages <= 5) {
                     // Show all pages
@@ -4014,7 +4067,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     // Show first page
                     addPaginationButton(1);
-
                     // Show dots or surrounding pages
                     if (currentPage <= 3) {
                         // Close to the beginning
@@ -4041,7 +4093,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         addPaginationButton(totalPages);
                     }
                 }
-
                 // Add next button
                 const nextBtn = document.createElement('button');
                 nextBtn.className = 'pagination-next';
@@ -4060,7 +4111,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.textContent = pageNum;
                 btn.addEventListener('click', function() {
                     currentPage = pageNum;
-                    displayMoviesPage(currentPage);
+                    displayMoviesPage(currentPage, movies);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
                 paginationContainer.appendChild(btn);
@@ -4069,8 +4120,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Helper function to add pagination dots
             function addPaginationDots() {
                 const dots = document.createElement('span');
-                dots.className = 'pagination-dots';
-                dots.textContent = '...';
+                dots.className = "pagination-dots";
+                dots.textContent = "...";
                 paginationContainer.appendChild(dots);
             }
 
@@ -4128,32 +4179,30 @@ document.addEventListener('DOMContentLoaded', function() {
             function filterMovies() {
                 const searchTerm = searchInput.value.toLowerCase();
                 const filterValue = filterSelect.value;
+                const now = new Date();
 
-                // Filter the allMovies array
-                const filteredMovies = allMovies.filter(movie => {
+                // Make a copy of allMovies so we don't lose the original data
+                const moviesToFilter = [...allMovies];
+
+                // Filter the movies array
+                const filteredMovies = moviesToFilter.filter(movie => {
                     const title = movie.title.toLowerCase();
                     const genre = movie.genre.toLowerCase();
 
                     // Convert screening_date and screening_time to Date object
                     const screeningDateTime = new Date(movie.screening_date + 'T' + movie.screening_time);
-                    const now = new Date();
-                    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
+                    // Determine if movie is past
                     const isPast = screeningDateTime < now;
-                    const isUpcoming = screeningDateTime > sevenDaysFromNow;
 
+                    // Match based on filter selection
                     let matchesFilter = true;
-                    switch (filterValue) {
-                        case 'upcoming':
-                            matchesFilter = isUpcoming;
-                            break;
-                        case 'now':
-                            matchesFilter = !isPast && !isUpcoming;
-                            break;
-                        case 'past':
-                            matchesFilter = isPast;
-                            break;
+                    if (filterValue === 'past') {
+                        matchesFilter = isPast;
+                    } else if (filterValue === 'now') {
+                        matchesFilter = !isPast; // Not past means current
                     }
+                    // 'all' option would keep matchesFilter as true
 
                     const matchesSearch = title.includes(searchTerm) || genre.includes(searchTerm);
                     return matchesSearch && matchesFilter;
@@ -4163,13 +4212,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (filteredMovies.length === 0) {
                     handleNoResults(0);
                 } else {
+                    // Show the filtered movies
+                    document.getElementById('no-results').style.display = 'none';
+                    document.getElementById('movies-wrapper').style.display = '';
+
                     // Reset to first page whenever filters change
                     currentPage = 1;
-                    // Update pagination based on new filtered array
-                    allMovies = filteredMovies;
-                    setupPagination();
+                    // Update filtered movies but DON't replace the original allMovies
+                    const tempMovies = filteredMovies;
+                    setupPagination(tempMovies);
                     // Display first page
-                    displayMoviesPage(currentPage);
+                    displayMoviesPage(currentPage, tempMovies);
                 }
             }
 
@@ -4489,7 +4542,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="seats-grid">
                 <div class="seat">
                     <span class="seat-number">${reservation.seat_number}</span>
-                 
+                    
                 </div>
             </div>
         </div>
@@ -5002,7 +5055,9 @@ if ($auth->isLoggedIn()) {
 </head>
 <body>
     <header class="site-header">
-      <h1>CineBukay</h1>
+      <a href="index.php" style="text-decoration: none; color: inherit;">
+                <h1>CineBukay</h1>
+            </a>
     </header>
 
     <div class="auth-container">
@@ -5108,11 +5163,16 @@ $currentUser = $auth->getCurrentUser();
     <link rel="stylesheet" href="./css/my-reservations.css">
 </head>
 <body>
-    <header class="site-header">
+ <header class="site-header">
         <div class="back-button">
             <a href="index.php" id="back-link">
                 <span class="back-arrow">&#8592;</span>
                 <span class="back-text">Zpět na program</span>
+            </a>
+        </div>
+        <div class="logo">
+            <a href="index.php" style="text-decoration: none; color: inherit;">
+                <h1>CineBukay</h1>
             </a>
         </div>
         <?php
@@ -5374,12 +5434,14 @@ function getReservations($userId = null) {
     $userMenu = getUserMenuHTML(); // Získá HTML pro menu podle stavu přihlášení
     ?>
 
-    <header class="site-header">
-        <div class="logo">
+<header class="site-header">
+    <div class="logo">
+        <a href="index.php" style="text-decoration: none; color: inherit;">
             <h1>CineBukay</h1>
-        </div>
-        <?php echo $userMenu; ?>
-    </header>
+        </a>
+    </div>
+    <?php echo $userMenu; ?>
+</header>
 
     <ul class="showcase">
         <li>

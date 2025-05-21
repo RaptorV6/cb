@@ -10,7 +10,6 @@
 │   ├── toast.css
 │   ├── vestylu.css
 ├── db_config.php
-├── includes
 ├── index.php
 ├── js
 │   ├── admin.js

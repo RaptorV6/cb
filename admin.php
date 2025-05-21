@@ -40,14 +40,14 @@ requireLogin(true); // Vyžaduje admin práva
             </div>
             
             <div class="search-container">
-                <div class="search-box">
+          <!--       <div class="search-box">
                     <input type="text" class="search-input" placeholder="Hledat film...">
                     <button class="search-btn">🔍</button>
                 </div>
                 <select class="filter-select">
     <option value="active">Aktuální</option>
     <option value="archive">Historie</option>
-</select>
+</select> -->
             </div>
 
             <!-- Loading stav -->
