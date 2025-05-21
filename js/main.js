@@ -358,9 +358,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function formatTimes(timeStr) {
         try {
             const times = JSON.parse(timeStr);
-            return times.join(', ');
+            return times.map(time => time.substring(0, 5)).join(', ');
         } catch {
-            return timeStr;
+            return timeStr.substring(0, 5);
         }
     }
 
@@ -380,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const endDate = new Date(date);
         endDate.setDate(endDate.getDate() + 14);
         
-        return `${date.toLocaleDateString('cs-CZ')} - ${endDate.toLocaleDateString('cs-CZ')}`;
+        return `${endDate.toLocaleDateString('cs-CZ', { year: 'numeric', month: 'numeric', day: 'numeric' }).replace(/\s/g, '')}`;
     }
 
     // Event listener pro změnu velikosti okna

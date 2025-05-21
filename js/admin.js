@@ -575,9 +575,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     timeFormatted = ' ' + timeStr.substring(0, 5);
                 }
             }
-            
+
             const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
-            return new Intl.DateTimeFormat('cs-CZ', options).format(date) + timeFormatted;
+            const formattedDate = new Intl.DateTimeFormat('cs-CZ', options).format(date).replace(/\s/g, '');
+            return formattedDate + ' ' + timeFormatted;
         } catch (e) {
             console.error("Chyba formátování data:", e);
             return dateStr;
