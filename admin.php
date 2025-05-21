@@ -20,12 +20,14 @@ requireLogin(true); // Vyžaduje admin práva
     $userMenu = getUserMenuHTML(); // Získá HTML pro menu podle stavu přihlášení
     ?>
 
-    <header class="site-header">
-        <div class="logo">
+<header class="site-header">
+    <div class="logo">
+        <a href="index.php" style="text-decoration: none; color: inherit;">
             <h1>CineBukay</h1>
-        </div>
-        <?php echo $userMenu; ?>
-    </header>
+        </a>
+    </div>
+    <?php echo $userMenu; ?>
+</header>
     
     <!-- Navigace odstraněna -->
     

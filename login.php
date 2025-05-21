@@ -25,7 +25,9 @@ if ($auth->isLoggedIn()) {
 </head>
 <body>
     <header class="site-header">
-      <h1>CineBukay</h1>
+      <a href="index.php" style="text-decoration: none; color: inherit;">
+                <h1>CineBukay</h1>
+            </a>
     </header>
 
     <div class="auth-container">
