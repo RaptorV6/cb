@@ -1209,8 +1209,6 @@ h2 {
     line-height: 1.3;
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
 }
 
 .movie-description-overlay {
@@ -1432,7 +1430,6 @@ h2 {
     font-size: 1.1rem;
     line-height: 1.3;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     min-height: 1.3em;
@@ -3285,14 +3282,13 @@ body {
 /* Modal Content/Box */
 
 .modal-content {
-    background-color: #fefefe;
+    background-color: #333;
     margin: 15% auto;
     /* 15% from the top and centered */
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
     border-radius: 9px;
-    color: #242333;
     /* Could be more or less, depending on screen size */
 }
 
@@ -5427,6 +5423,9 @@ if ($toastMessage):
         <div class="modal-content">
             <span class="close modal-close">&times;</span>
             <h2>Podmínky používání</h2>
+            <br>
+            <hr>
+            <br>
             <p>Vstupuji do místnosti pouze za předpokladu, že mé „toxické emise“ zůstanou vždy pod únosnou mezí; pokud dojde k překročení, okamžitě místnost opustím až do úplného obnovení dýchatelného ovzduší. Dodržím pravidelnou kontrolu stravy a podle potřeby sáhnu po neutralizačních prostředcích (probiotika, aktivní uhlí, mátový čaj). V případě porušení jakéhokoli ustanovení bez prodlení použiji dostupný osvěžovač vzduchu. Majitel má právo při neúnosné situaci účastníka vyhostit bez možnosti protestu. Opakované porušení pravidel bude oznámeno veřejně jako biologický útok vůči ostatním přítomným osobám. Pokuty se ukládají dle míry přestupku a jejich výtěžek půjde na fond osvěžovačů vzduchu nebo kompenzaci obětem.</p>
         </div>
     </div>

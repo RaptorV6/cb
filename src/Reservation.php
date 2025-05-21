@@ -22,7 +22,8 @@ public function getReservations() {
          return ['status' => 'error', 'message' => 'Pro zobrazení rezervací musíte být přihlášeni.'];
     }
 
-    $userId = !$this->auth->isAdmin() ? $_SESSION['user_id'] : null;
+    // Vždy filtrujeme podle aktuálního uživatele bez ohledu na admin status
+    $userId = $_SESSION['user_id'];
 
     try {
         $sql = "
@@ -32,16 +33,11 @@ public function getReservations() {
             FROM reservations r
             JOIN screenings s ON r.id_screening = s.id_screening
             JOIN seats seat ON r.id_seat = seat.id_seat
-            WHERE r.status = 'active' " . ($userId ? " AND r.id_user = :userId" : "") . "
+            WHERE r.status = 'active' AND r.id_user = :userId
             ORDER BY r.created_at DESC";
 
-        if ($userId) {
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute(['userId' => $userId]);
-        } else {
-            // Admin gets all active reservations
-            $stmt = $this->pdo->query($sql);
-        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['userId' => $userId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
