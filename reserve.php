@@ -7,7 +7,26 @@
     <title>Rezervační Systém</title>
     <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/vestylu.css">
-
+    <style>
+        /* Zajištění správného umístění jmenovek v rámci kontejnerů */
+        .couch-horizontal .seat,
+        .couch-vertical .seat,
+        .chair-top-right .seat,
+        .chair-middle-left .seat,
+        .chair-middle-top .seat {
+            position: relative;
+            overflow: visible; /* Důležité pro zobrazení jmenovky, která vystupuje mimo */
+        }
+        
+        /* Zajištění, že kontejnery nepřekrývají jmenovky */
+        .couch-horizontal,
+        .couch-vertical,
+        .chair-top-right,
+        .chair-middle-left,
+        .chair-middle-top {
+            overflow: visible;
+        }
+    </style>
 </head>
 
 <body>

@@ -58,7 +58,7 @@ class Reservation {
      * @return array List of available seats or error message.
      */
     public function getAvailableSeats($screeningId) {
-         try {
+        try {
             $this->auth->requireLogin(); // Require login for this action
 
             $pdo = Database::getConnection();
@@ -83,16 +83,38 @@ class Reservation {
                 return (object) ['status' => 'error', 'message' => 'Promítání již začalo.'];
             }
 
-            // If screening is valid and has not started, proceed to fetch available seats
+            // Získáme data o všech sedadlech, včetně informací o rezervacích a uživatelích
             $sql = "
-                SELECT s.id_seat
+                SELECT s.id_seat, s.seat_number, r.id_reservation, u.username
                 FROM seats s
                 LEFT JOIN reservations r ON s.id_seat = r.id_seat AND r.id_screening = :screening_id AND r.status = 'active'
-                WHERE r.id_seat IS NULL
+                LEFT JOIN users u ON r.id_user = u.id_user
+                ORDER BY s.id_seat ASC
             ";
             $stmt = $pdo->prepare($sql);
             $stmt->execute(['screening_id' => $screeningId]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $allSeats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Rozdělíme sedadla na dostupná a obsazená
+            $availableSeats = [];
+            $occupiedSeats = [];
+            
+            foreach ($allSeats as $seat) {
+                if ($seat['id_reservation'] === null) {
+                    $availableSeats[] = ['id_seat' => $seat['id_seat'], 'seat_number' => $seat['seat_number']];
+                } else {
+                    $occupiedSeats[] = [
+                        'id_seat' => $seat['id_seat'], 
+                        'seat_number' => $seat['seat_number'],
+                        'username' => $seat['username']
+                    ];
+                }
+            }
+            
+            return [
+                'available' => $availableSeats,
+                'occupied' => $occupiedSeats
+            ];
 
         } catch (PDOException $e) {
             error_log("Reservation::getAvailableSeats - DB error: " . $e->getMessage());
@@ -155,7 +177,7 @@ class Reservation {
             return ['status' => 'error', 'message' => 'Chyba při vytváření rezervace.'];
         }
     }
-    
+
     /**
      * Create multiple reservations for the logged-in user in a single transaction.
      * @param int $screeningId
@@ -167,53 +189,53 @@ class Reservation {
             return ['status' => 'error', 'message' => 'Pro vytvoření rezervace musíte být přihlášeni.'];
         }
         if (empty($seatIds)) {
-             return ['status' => 'error', 'message' => 'Nebyla vybrána žádná místa k rezervaci.'];
+            return ['status' => 'error', 'message' => 'Nebylo vybráno žádné místo k rezervaci.'];
         }
+        
+        // Omezíme počet míst na 1
+        if (count($seatIds) > 1) {
+            return ['status' => 'error', 'message' => 'Můžete rezervovat pouze jedno místo najednou.'];
+        }
+        
         $userId = $_SESSION['user_id'];
+        $seatId = $seatIds[0]; // Bereme pouze první (a jediné) sedadlo
 
         try {
             $this->pdo->beginTransaction();
 
-            // Check availability of all seats first
-            $placeholders = implode(',', array_fill(0, count($seatIds), '?'));
+            // Kontrola dostupnosti sedadla
             $stmtCheck = $this->pdo->prepare("
                 SELECT id_seat 
                 FROM reservations 
                 WHERE id_screening = ? 
-                AND id_seat IN ($placeholders)
+                AND id_seat = ?
                 AND status = 'active'
             ");
-            $paramsCheck = array_merge([$screeningId], $seatIds);
-            $stmtCheck->execute($paramsCheck);
-            $occupiedSeats = $stmtCheck->fetchAll(PDO::FETCH_COLUMN);
-
-            if (!empty($occupiedSeats)) {
+            $stmtCheck->execute([$screeningId, $seatId]);
+            
+            if ($stmtCheck->rowCount() > 0) {
                 $this->pdo->rollBack();
-                return ['status' => 'error', 'message' => 'Některá vybraná místa jsou již obsazená: ' . implode(', ', $occupiedSeats)];
+                return ['status' => 'error', 'message' => 'Vybrané místo je již obsazené.'];
             }
 
-            // Insert all reservations
+            // Vytvoření rezervace
             $stmtInsert = $this->pdo->prepare("
                 INSERT INTO reservations (id_user, id_screening, id_seat, status)
                 VALUES (?, ?, ?, 'active')
             ");
 
-            foreach ($seatIds as $seatId) {
-                if (!$stmtInsert->execute([$userId, $screeningId, $seatId])) {
-                     // If any insert fails, rollback
-                     $this->pdo->rollBack();
-                     error_log("Reservation Error (createMultipleReservations): Failed to insert seat ID " . $seatId);
-                     return ['status' => 'error', 'message' => 'Chyba při vytváření rezervace pro místo ' . $seatId];
-                }
+            if (!$stmtInsert->execute([$userId, $screeningId, $seatId])) {
+                $this->pdo->rollBack();
+                return ['status' => 'error', 'message' => 'Chyba při vytváření rezervace.'];
             }
 
             $this->pdo->commit();
-            return ['status' => 'success', 'message' => 'Rezervace byla úspěšně vytvořena.'];
+            return ['status' => 'success', 'message' => 'Místo bylo úspěšně rezervováno.'];
 
         } catch (PDOException $e) {
             $this->pdo->rollBack();
             error_log("Reservation Error (createMultipleReservations): " . $e->getMessage());
-            return ['status' => 'error', 'message' => 'Chyba při vytváření rezervací.'];
+            return ['status' => 'error', 'message' => 'Chyba při vytváření rezervace.'];
         }
     }
 

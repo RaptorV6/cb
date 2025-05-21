@@ -6,6 +6,38 @@
          padding: 0;
          font-family: "Lato", sans-serif;
      }
+     /* Username label styl - opraveno pro správné umístění nad každým sedadlem */
+     
+     .username-label {
+         position: absolute;
+         top: -20px;
+         left: 50%;
+         transform: translateX(-50%);
+         background-color: rgb(93 93 93 / 70%);
+         color: white;
+         border-radius: 3px;
+         padding: 2px 4px;
+         white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis;
+         text-align: center;
+         z-index: 10;
+         line-height: 1;
+     }
+     /* Pro mobily - upravený styl */
+     
+     @media (max-width: 480px) {
+         .username-label {
+             font-size: 8px;
+             padding: 1px 3px;
+             top: -16px;
+         }
+     }
+     /* Upravit nadřazené kontejnery, aby umožnily absolutní pozicování */
+     
+     .seat {
+         position: relative;
+     }
      
      body {
          background-color: #242333;
@@ -452,8 +484,8 @@
          display: flex;
          justify-content: center;
          align-items: center;
-         min-height: calc(100vh - 70px);
          padding: 20px;
+         width: 100%;
      }
      
      .auth-box {
@@ -639,8 +671,9 @@
      }
      
      .seat-label {
-         color: #0e0e0e;
+         color: #343434;
          position: absolute;
          bottom: 3px;
-         font-size: small;
+         font-size: 10px;
+         font-weight: bolder;
      }

@@ -87,10 +87,6 @@ body {
         bottom: 0;
         width: 200px;
     }
-    .main-content {
-        margin-left: 200px;
-        padding: 20px;
-    }
 }
 
 
@@ -127,10 +123,6 @@ body {
 
 
 /* Hlavní obsah */
-
-.main-content {
-    padding: 90px 15px 20px;
-}
 
 h2 {
     margin-bottom: 20px;

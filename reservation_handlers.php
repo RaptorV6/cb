@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 break;
             
-             default:
+            default:
                 $response = ['status' => 'error', 'message' => 'Neznámá akce.'];
                 break;
         }
