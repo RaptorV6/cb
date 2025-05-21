@@ -1,3 +1,8 @@
+<?php
+require_once 'session_check.php';
+// Vyžadovat přihlášení pro přístup k rezervační stránce
+requireLogin(); // Toto automaticky přesměruje nepřihlášené uživatele na login.php
+?>
 <!DOCTYPE html>
 <html lang="cs">
 

@@ -6,6 +6,7 @@ requireLogin(true); // Vyžaduje admin práva
 <!DOCTYPE html>
 <html lang="cs">
 <head>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="./css/toast.css">
     <script src="./js/toast.js"></script>
     <meta charset="UTF-8">
@@ -1212,6 +1213,22 @@ h2 {
     -webkit-box-orient: vertical;
 }
 
+.movie-description-overlay {
+    pointer-events: auto;
+    /* Change from none to auto */
+}
+
+
+/* Make sure the reserve button is clickable */
+
+.movie-description-overlay .reserve-btn {
+    pointer-events: auto;
+    position: relative;
+    z-index: 20;
+    margin-top: 20px;
+    display: inline-block;
+}
+
 
 /* Overlay popis pro desktop verzi při hoveru */
 
@@ -1256,6 +1273,9 @@ h2 {
 @media (min-width: 768px) {
     .movie-card:hover .movie-description-overlay {
         opacity: 1;
+    }
+    .movie-card.past .movie-description-overlay {
+        display: none;
     }
     /* Skryje zkrácený popis na desktopu pro úsporu místa */
     .movie-short-description {
@@ -1441,13 +1461,13 @@ h2 {
 
 .movie-time {
     display: flex;
-    flex-direction: column;
     font-size: 0.85rem;
     color: #e0e0e0;
     background-color: rgba(255, 255, 255, 0.1);
     padding: 8px 10px;
     border-radius: 5px;
     margin-bottom: 10px;
+    justify-content: space-between;
 }
 
 
@@ -1482,6 +1502,7 @@ h2 {
     width: 100%;
     box-sizing: border-box;
     transition: background-color 0.3s;
+    z-index: 10;
 }
 
 .reserve-btn:hover,
@@ -1675,9 +1696,6 @@ h2 {
     .movie-title {
         font-size: 1rem;
     }
-    .movie-time {
-        flex-direction: column;
-    }
     .reserve-btn,
     .ended-label {
         width: 80%;
@@ -1756,6 +1774,39 @@ h2 {
     }
     to {
         opacity: 1;
+    }
+}
+
+
+/* Media query pro mobilní zařízení */
+
+@media (max-width: 768px) {
+    .movie-card {
+        flex-direction: column;
+    }
+    .movie-image {
+        width: 100%;
+        height: auto;
+    }
+    .movie-content {
+        width: 100%;
+    }
+    .movie-details {
+        padding: 10px;
+    }
+    .movie-meta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .movie-duration,
+    .movie-genre {
+        margin-bottom: 5px;
+    }
+    .movie-short-description {
+        margin-bottom: 10px;
+    }
+    .movie-time {
+        font-size: 0.9em;
     }
 }
 // File: ./css/my-reservations.css
@@ -3205,6 +3256,62 @@ body {
     font-size: 10px;
     font-weight: bolder;
 }
+
+
+/* The Modal (background) */
+
+.modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 1;
+    /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+    background-color: rgb(0, 0, 0);
+    /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Black w/ opacity */
+}
+
+
+/* Modal Content/Box */
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    border-radius: 9px;
+    color: #242333;
+    /* Could be more or less, depending on screen size */
+}
+
+
+/* The Close Button */
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
 // File: ./db_config.php
 <?php
 // File: db_config.php
@@ -3227,6 +3334,7 @@ return [ // Use return instead of defining a global variable
 <!DOCTYPE html>
 <html lang="cs">
 <head>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="./css/toast.css">
     <script src="./js/toast.js"></script>
     <meta charset="UTF-8">
@@ -3891,9 +3999,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     timeFormatted = ' ' + timeStr.substring(0, 5);
                 }
             }
-            
+
             const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
-            return new Intl.DateTimeFormat('cs-CZ', options).format(date) + timeFormatted;
+            const formattedDate = new Intl.DateTimeFormat('cs-CZ', options).format(date).replace(/\s/g, '');
+            return formattedDate + ' ' + timeFormatted;
         } catch (e) {
             console.error("Chyba formátování data:", e);
             return dateStr;
@@ -4005,7 +4114,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get form values
         const username = document.getElementById('login-username').value;
         const password = document.getElementById('login-password').value;
-        const rememberMe = document.getElementById('remember-me').checked;
+        //const rememberMe = document.getElementById('remember-me').checked;
 
         // Basic validation
         if (!username || !password) {
@@ -4018,7 +4127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('action', 'login');
         formData.append('username', username);
         formData.append('password', password);
-        formData.append('remember', rememberMe);
+        //formData.append('remember', rememberMe);
 
         fetch('auth_handlers.php', {
                 method: 'POST',
@@ -4409,14 +4518,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 card.innerHTML = `
         <div class="movie-image">
             <img src="${imgSrc}" alt="${movie.title}">
-            <div class="desktop-reserve">
-                ${isPast ?
-                    "<span class='ended-label'>Projekce skončila</span>" :
-                    `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
-                }
-            </div>
             <div class="movie-description-overlay">
                 <p>${movie.description || 'Popis filmu není k dispozici.'}</p>
+                ${!isPast ? 
+                    `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 20;">Rezervovat</a>` 
+                    : 
+                    "<span class='ended-label' style='position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);'>Projekce skončila</span>"
+                }
             </div>
         </div>
         <div class="movie-content">
@@ -4478,9 +4586,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function formatTimes(timeStr) {
         try {
             const times = JSON.parse(timeStr);
-            return times.join(', ');
+            return times.map(time => time.substring(0, 5)).join(', ');
         } catch {
-            return timeStr;
+            return timeStr.substring(0, 5);
         }
     }
 
@@ -4500,7 +4608,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const endDate = new Date(date);
         endDate.setDate(endDate.getDate() + 14);
         
-        return `${date.toLocaleDateString('cs-CZ')} - ${endDate.toLocaleDateString('cs-CZ')}`;
+        return `${endDate.toLocaleDateString('cs-CZ', { year: 'numeric', month: 'numeric', day: 'numeric' }).replace(/\s/g, '')}`;
     }
 
     // Event listener pro změnu velikosti okna
@@ -5221,6 +5329,7 @@ if ($auth->isLoggedIn()) {
 <!DOCTYPE html>
 <html lang="cs">
 <head>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="./css/toast.css">
     <script src="./js/toast.js"></script>
     <meta charset="UTF-8">
@@ -5240,7 +5349,7 @@ if ($auth->isLoggedIn()) {
     <div class="auth-container">
         <div class="auth-box">
             <div class="auth-header">
-                <h1>Rezervační Systém</h1>
+                <h1>Přihlášení</h1>
                 <div class="auth-tabs">
                     <button class="auth-tab active" data-tab="login">Přihlášení</button>
                     <button class="auth-tab" data-tab="register">Registrace</button>
@@ -5260,10 +5369,10 @@ if ($auth->isLoggedIn()) {
                         <input type="password" id="login-password" name="password" required>
                     </div>
                     
-                    <div class="form-group checkbox">
+                <!--     <div class="form-group checkbox">
                         <input type="checkbox" id="remember-me" name="remember">
                         <label for="remember-me">Zapamatovat si mě</label>
-                    </div>
+                    </div> -->
                     
                     <div class="form-group">
                         <button type="submit" class="submit-btn">Přihlásit se</button>
@@ -5289,7 +5398,7 @@ if ($auth->isLoggedIn()) {
                     
                     <div class="form-group checkbox">
                         <input type="checkbox" id="agree-terms" name="agree_terms" required>
-                        <label for="agree-terms">Souhlasím s <a href="#"> podmínkami</a></label>
+                        <label for="agree-terms">Souhlasím s <a href="#" id="terms-link">podmínkami</a></label>
                     </div>
                     
                     <div class="form-group">
@@ -5313,7 +5422,46 @@ if ($toastMessage):
     });
 </script>
 <?php endif; ?>
+    
+    <div id="terms-modal" class="modal">
+        <div class="modal-content">
+            <span class="close modal-close">&times;</span>
+            <h2>Podmínky používání</h2>
+            <p>Vstupuji do místnosti pouze za předpokladu, že mé „toxické emise“ zůstanou vždy pod únosnou mezí; pokud dojde k překročení, okamžitě místnost opustím až do úplného obnovení dýchatelného ovzduší. Dodržím pravidelnou kontrolu stravy a podle potřeby sáhnu po neutralizačních prostředcích (probiotika, aktivní uhlí, mátový čaj). V případě porušení jakéhokoli ustanovení bez prodlení použiji dostupný osvěžovač vzduchu. Majitel má právo při neúnosné situaci účastníka vyhostit bez možnosti protestu. Opakované porušení pravidel bude oznámeno veřejně jako biologický útok vůči ostatním přítomným osobám. Pokuty se ukládají dle míry přestupku a jejich výtěžek půjde na fond osvěžovačů vzduchu nebo kompenzaci obětem.</p>
+        </div>
+    </div>
+
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the modal
+        var modal = document.getElementById("terms-modal");
+
+        // Get the link that opens the modal
+        var link = document.getElementById("terms-link");
+
+        // Get the <span> element that closes the modal
+        var span = document.querySelector(".modal-close");
+
+        // When the user clicks on the link, open the modal
+        link.onclick = function(event) {
+            event.preventDefault(); // Prevent the link from navigating
+            modal.style.display = "block";
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    });
+</script>
 </html>
 
 // File: ./my-reservations.php
@@ -5330,6 +5478,7 @@ $currentUser = $auth->getCurrentUser();
 <!DOCTYPE html>
 <html lang="cs">
 <head>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="./css/toast.css">
     <script src="./js/toast.js"></script>
     <meta charset="UTF-8">
@@ -5562,10 +5711,16 @@ function getReservations($userId = null) {
 ?>
 
 // File: ./reserve.php
+<?php
+require_once 'session_check.php';
+// Vyžadovat přihlášení pro přístup k rezervační stránce
+requireLogin(); // Toto automaticky přesměruje nepřihlášené uživatele na login.php
+?>
 <!DOCTYPE html>
 <html lang="cs">
 
 <head>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="./css/toast.css">
     <script src="./js/toast.js"></script>
     <meta charset="UTF-8">

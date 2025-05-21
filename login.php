@@ -34,7 +34,7 @@ if ($auth->isLoggedIn()) {
     <div class="auth-container">
         <div class="auth-box">
             <div class="auth-header">
-                <h1>Rezervační Systém</h1>
+                <h1>Přihlášení</h1>
                 <div class="auth-tabs">
                     <button class="auth-tab active" data-tab="login">Přihlášení</button>
                     <button class="auth-tab" data-tab="register">Registrace</button>
