@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get form values
         const username = document.getElementById('login-username').value;
         const password = document.getElementById('login-password').value;
-        const rememberMe = document.getElementById('remember-me').checked;
+        //const rememberMe = document.getElementById('remember-me').checked;
 
         // Basic validation
         if (!username || !password) {
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('action', 'login');
         formData.append('username', username);
         formData.append('password', password);
-        formData.append('remember', rememberMe);
+        //formData.append('remember', rememberMe);
 
         fetch('auth_handlers.php', {
                 method: 'POST',

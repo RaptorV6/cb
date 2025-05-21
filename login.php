@@ -53,10 +53,10 @@ if ($auth->isLoggedIn()) {
                         <input type="password" id="login-password" name="password" required>
                     </div>
                     
-                    <div class="form-group checkbox">
+                <!--     <div class="form-group checkbox">
                         <input type="checkbox" id="remember-me" name="remember">
                         <label for="remember-me">Zapamatovat si mě</label>
-                    </div>
+                    </div> -->
                     
                     <div class="form-group">
                         <button type="submit" class="submit-btn">Přihlásit se</button>
