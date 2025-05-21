@@ -377,7 +377,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const endDate = new Date(date);
-        endDate.setDate(endDate.getDate() + 14);
+        endDate.setDate(endDate.getDate());
         
         return `${endDate.toLocaleDateString('cs-CZ', { year: 'numeric', month: 'numeric', day: 'numeric' }).replace(/\s/g, '')}`;
     }

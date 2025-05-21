@@ -219,11 +219,10 @@ public function getReservations() {
 
             // Pokud existuje předchozí rezervace, zrušíme ji
             if ($existingReservation) {
-                $stmtCancel = $this->pdo->prepare("
-                    UPDATE reservations 
-                    SET status = 'canceled' 
-                    WHERE id_reservation = ?
-                ");
+              $stmtCancel = $this->pdo->prepare("
+    DELETE FROM reservations 
+    WHERE id_reservation = ?
+");
                 if (!$stmtCancel->execute([$existingReservation['id_reservation']])) {
                     $this->pdo->rollBack();
                     return ['status' => 'error', 'message' => 'Nepodařilo se aktualizovat předchozí rezervaci.'];
@@ -295,7 +294,7 @@ public function getReservations() {
             }
 
             // Cancel reservation
-            $stmt = $this->pdo->prepare("UPDATE reservations SET status = 'canceled' WHERE id_reservation = :id");
+      $stmt = $this->pdo->prepare("DELETE FROM reservations WHERE id_reservation = :id");
             $stmt->execute(['id' => $reservationId]);
 
             if ($stmt->rowCount() > 0) {

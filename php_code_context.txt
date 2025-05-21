@@ -4602,7 +4602,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const endDate = new Date(date);
-        endDate.setDate(endDate.getDate() + 14);
+        endDate.setDate(endDate.getDate());
         
         return `${endDate.toLocaleDateString('cs-CZ', { year: 'numeric', month: 'numeric', day: 'numeric' }).replace(/\s/g, '')}`;
     }
@@ -6236,7 +6236,8 @@ public function getReservations() {
          return ['status' => 'error', 'message' => 'Pro zobrazení rezervací musíte být přihlášeni.'];
     }
 
-    $userId = !$this->auth->isAdmin() ? $_SESSION['user_id'] : null;
+    // Vždy filtrujeme podle aktuálního uživatele bez ohledu na admin status
+    $userId = $_SESSION['user_id'];
 
     try {
         $sql = "
@@ -6246,16 +6247,11 @@ public function getReservations() {
             FROM reservations r
             JOIN screenings s ON r.id_screening = s.id_screening
             JOIN seats seat ON r.id_seat = seat.id_seat
-            WHERE r.status = 'active' " . ($userId ? " AND r.id_user = :userId" : "") . "
+            WHERE r.status = 'active' AND r.id_user = :userId
             ORDER BY r.created_at DESC";
 
-        if ($userId) {
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute(['userId' => $userId]);
-        } else {
-            // Admin gets all active reservations
-            $stmt = $this->pdo->query($sql);
-        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['userId' => $userId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -6437,11 +6433,10 @@ public function getReservations() {
 
             // Pokud existuje předchozí rezervace, zrušíme ji
             if ($existingReservation) {
-                $stmtCancel = $this->pdo->prepare("
-                    UPDATE reservations 
-                    SET status = 'canceled' 
-                    WHERE id_reservation = ?
-                ");
+              $stmtCancel = $this->pdo->prepare("
+    DELETE FROM reservations 
+    WHERE id_reservation = ?
+");
                 if (!$stmtCancel->execute([$existingReservation['id_reservation']])) {
                     $this->pdo->rollBack();
                     return ['status' => 'error', 'message' => 'Nepodařilo se aktualizovat předchozí rezervaci.'];
@@ -6513,7 +6508,7 @@ public function getReservations() {
             }
 
             // Cancel reservation
-            $stmt = $this->pdo->prepare("UPDATE reservations SET status = 'canceled' WHERE id_reservation = :id");
+      $stmt = $this->pdo->prepare("DELETE FROM reservations WHERE id_reservation = :id");
             $stmt->execute(['id' => $reservationId]);
 
             if ($stmt->rowCount() > 0) {
