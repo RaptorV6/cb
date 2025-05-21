@@ -96,9 +96,9 @@
         </div>
     </div>
 
-    <div class="selection-info">
-        <p>Vybrali jste <span id="count">0</span> míst za cenu <span class="price" id="total">0</span> Kč</p>
-    </div>
+<div class="selection-info">
+    <p>Vyberte místo, které si přejete rezervovat.</p>
+</div>
 
     <div class="button-container">
         <button class="reserve-btn" id="reserve-btn" disabled>Rezervovat místa</button>

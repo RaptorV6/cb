@@ -563,6 +563,37 @@
      .form-group {
          margin-bottom: 20px;
      }
+     /* Styl pro označení vlastní rezervace */
+     
+     .seat.user-reserved {
+         background-color: #4caf50;
+         /* Zelená barva pro vlastní rezervaci */
+     }
+     /* Speciální styl pro "VAŠE MÍSTO" label */
+     
+     .username-label.user-label {
+         background-color: #4caf50;
+         /* Zelená i pro jmenovku */
+     }
+     /* Oprava umístění jmenovek nad sedadly */
+     
+     .username-label {
+         position: absolute;
+         top: -20px;
+         left: 50%;
+         transform: translateX(-50%);
+         background-color: rgba(109, 109, 109, 0.7);
+         color: white;
+         border-radius: 3px;
+         padding: 2px 4px;
+         font-size: 10px;
+         white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis;
+         text-align: center;
+         z-index: 10;
+         line-height: 1;
+     }
      
      .form-group label {
          display: block;

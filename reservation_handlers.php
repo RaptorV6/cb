@@ -65,7 +65,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $response = ['status' => 'error', 'message' => 'Chybí ID promítání pro načtení míst.'];
                 }
                 break;
-            
+            case 'get_user_reservation':
+                if (isset($_POST['screening_id'])) {
+                    $screeningId = $_POST['screening_id'];
+                    $response = $reservationService->getUserReservationForScreening($screeningId);
+                    // Pokud není nalezena žádná rezervace, vrátíme prázdný objekt, ne null
+                    if ($response === null) {
+                        $response = ['found' => false];
+                    } else {
+                        $response['found'] = true;
+                    }
+                } else {
+                    $response = ['status' => 'error', 'message' => 'Chybí ID promítání.'];
+                }
+                break;
             default:
                 $response = ['status' => 'error', 'message' => 'Neznámá akce.'];
                 break;

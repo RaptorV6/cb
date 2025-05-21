@@ -178,6 +178,8 @@ class Reservation {
         }
     }
 
+    // Úprava metody createMultipleReservations - přidání podpory pro přesouvání rezervace
+
     /**
      * Create multiple reservations for the logged-in user in a single transaction.
      * @param int $screeningId
@@ -202,7 +204,10 @@ class Reservation {
 
         try {
             $this->pdo->beginTransaction();
-
+            
+            // Nejdříve zkontrolujeme, zda uživatel již nemá rezervaci na toto promítání
+            $existingReservation = $this->getUserReservationForScreening($screeningId);
+            
             // Kontrola dostupnosti sedadla
             $stmtCheck = $this->pdo->prepare("
                 SELECT id_seat 
@@ -218,7 +223,20 @@ class Reservation {
                 return ['status' => 'error', 'message' => 'Vybrané místo je již obsazené.'];
             }
 
-            // Vytvoření rezervace
+            // Pokud existuje předchozí rezervace, zrušíme ji
+            if ($existingReservation) {
+                $stmtCancel = $this->pdo->prepare("
+                    UPDATE reservations 
+                    SET status = 'canceled' 
+                    WHERE id_reservation = ?
+                ");
+                if (!$stmtCancel->execute([$existingReservation['id_reservation']])) {
+                    $this->pdo->rollBack();
+                    return ['status' => 'error', 'message' => 'Nepodařilo se aktualizovat předchozí rezervaci.'];
+                }
+            }
+
+            // Vytvoření nové rezervace
             $stmtInsert = $this->pdo->prepare("
                 INSERT INTO reservations (id_user, id_screening, id_seat, status)
                 VALUES (?, ?, ?, 'active')
@@ -230,7 +248,23 @@ class Reservation {
             }
 
             $this->pdo->commit();
-            return ['status' => 'success', 'message' => 'Místo bylo úspěšně rezervováno.'];
+            
+            // Zpráva se liší podle toho, zda jde o novou rezervaci nebo přesun
+            if ($existingReservation) {
+                return [
+                    'status' => 'success', 
+                    'message' => 'Vaše rezervace byla přesunuta na nové místo.',
+                    'moved' => true,
+                    'previousSeat' => $existingReservation['seat_number'],
+                    'newSeat' => $seatId
+                ];
+            } else {
+                return [
+                    'status' => 'success', 
+                    'message' => 'Místo bylo úspěšně rezervováno.',
+                    'newSeat' => $seatId
+                ];
+            }
 
         } catch (PDOException $e) {
             $this->pdo->rollBack();
@@ -279,6 +313,34 @@ class Reservation {
         } catch (PDOException $e) {
             error_log("Reservation Error (cancelReservation): " . $e->getMessage());
             return ['status' => 'error', 'message' => 'Chyba při rušení rezervace.'];
+        }
+    }
+
+    public function getUserReservationForScreening($screeningId) {
+        if (!$this->auth->isLoggedIn()) {
+            return null;
+        }
+        
+        $userId = $_SESSION['user_id'];
+        
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT r.id_reservation, r.id_seat, s.seat_number 
+                FROM reservations r
+                JOIN seats s ON r.id_seat = s.id_seat
+                WHERE r.id_screening = :screeningId 
+                AND r.id_user = :userId 
+                AND r.status = 'active'
+            ");
+            $stmt->execute([
+                'screeningId' => $screeningId,
+                'userId' => $userId
+            ]);
+            
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Reservation Error (getUserReservationForScreening): " . $e->getMessage());
+            return null;
         }
     }
 }
