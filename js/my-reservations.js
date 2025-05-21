@@ -22,9 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 tabContents.forEach(c => c.classList.add('hidden'));
                 const activeTab = document.getElementById(`${tabId}-tab`);
                 activeTab.classList.remove('hidden');
-
-                // Kontrola prázdného stavu
-                checkEmptyState(activeTab);
             }
 
             // Načtení rezervací
@@ -41,26 +38,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (response.ok && Array.isArray(result)) {
                         updateReservationsUI(result);
-                        // Aktivujeme záložku "aktuální"
-                        document.querySelector('[data-tab="upcoming"]').click();
+
+                        // DŮLEŽITÁ ZMĚNA: Nejprve zajistíme, že jsou všechny záložky správně inicializovány
+                        tabContents.forEach(c => c.classList.add('hidden'));
+                        const upcomingTab = document.getElementById('upcoming-tab');
+                        upcomingTab.classList.remove('hidden');
+
+                        // Aktivujeme záložku "aktuální" pomocí switchTab, která správně aktualizuje UI
+                        const upcomingBtn = document.querySelector('[data-tab="upcoming"]');
+                        tabBtns.forEach(b => b.classList.remove('active'));
+                        upcomingBtn.classList.add('active');
                     } else {
                         console.error('Chyba při načítání rezervací:', result);
                         const errorMessage = result && result.message ? result.message : 'Nepodařilo se načíst rezervace. Zkuste to prosím znovu.';
-                        alert(errorMessage);
+                        showToast(errorMessage, 'error');
                         updateReservationsUI([]);
                     }
                 } catch (error) {
                     console.error('Chyba při zpracování odpovědi rezervací:', error);
-                    alert('Došlo k chybě při komunikaci se serverem. Zkuste to prosím znovu.');
+                    showToast('Došlo k chybě při komunikaci se serverem. Zkuste to prosím znovu.', 'error');
+                    updateReservationsUI([]);
                 } finally {
                     // Skrýt loading indikátor po načtení
-                    const loadingIndicator = document.getElementById('loading');
-                    if (loadingIndicator) loadingIndicator.style.display = 'none';
-                    const tabContents = document.querySelectorAll('.tab-content');
-                    tabContents.forEach(c => c.classList.remove('hidden')); // Zobrazit záložky po načítání
+                    loadingIndicator.style.display = 'none';
                 }
             }
 
+            // Aktualizace UI rezervací
             // Aktualizace UI rezervací
             function updateReservationsUI(reservations) {
                 const upcomingTab = document.getElementById('upcoming-tab');
@@ -73,6 +77,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const now = new Date();
                 let upcomingCount = 0;
                 let pastCount = 0;
+
+                // Filtrujeme pouze aktivní rezervace
+                reservations = reservations.filter(reservation =>
+                    reservation.status === undefined || reservation.status === 'active'
+                );
 
                 reservations.forEach(reservation => {
                     try {
@@ -93,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Vytvoříme datum promítání
                         const screeningDateTime = new Date(`${screeningDate}T${screeningTime}`);
 
-                        // JEDNODUCHÁ LOGIKA: Pokud datum promítání je v minulosti, je to historie
+                        // DŮLEŽITÁ ZMĚNA: Pokud datum promítání je v minulosti, je to historie
                         const isPast = screeningDateTime < now;
 
                         // Vytvoříme kartu rezervace
@@ -129,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const emptyState = document.createElement('div');
                 emptyState.className = 'empty-state';
                 emptyState.innerHTML = `
-            <div class="empty-icon">&#128465;</div>
+            <div class="empty-icon">🗑️</div>
             <h3>Žádné rezervace</h3>
             <p>Zatím nemáte žádné rezervace v této kategorii.</p>
             <a href="index.php" class="browse-btn">Prohlédnout program</a>
@@ -148,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // Vytvoření karty rezervace s lepší podporou responzivity
+            // Vytvoření karty rezervace
             function createReservationCard(reservation, isPast) {
                 const card = document.createElement('div');
                 card.className = `reservation-card${isPast ? ' past' : ''}`;
@@ -163,38 +172,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 card.innerHTML = `
-        <div class="reservation-header">
-            <div class="movie-thumbnail-container">
-                <img src="data:image/jpeg;base64,${reservation.image}" alt="${reservation.movie_title || reservation.title}" class="movie-thumbnail">
-            </div>
-            <div class="reservation-info">
-                <h3 class="movie-title">${reservation.movie_title || reservation.title}</h3>
-                <div class="movie-details">
-                    <span class="movie-genre">${reservation.genre}</span>
-                    <span class="movie-duration">${reservation.duration} min</span>
+            <div class="reservation-header">
+                <div class="movie-thumbnail-container">
+                    <img src="data:image/jpeg;base64,${reservation.image}" alt="${reservation.movie_title || reservation.title}" class="movie-thumbnail">
                 </div>
-                <div class="reservation-date">
-                    <span class="date-icon">&#128197;</span>
-                    <span>${formattedDate}</span>
-                    <span class="time-icon">&#128336;</span>
-                    <span>${formatTime(reservation.screening_time)}</span>
-                </div>
-            </div>
-        </div>
-        <div class="reservation-seats">
-            <h4>Rezervovaná místa</h4>
-            <div class="seats-grid">
-                <div class="seat">
-                    <span class="seat-number">${reservation.seat_number}</span>
-                    
+                <div class="reservation-info">
+                    <h3 class="movie-title">${reservation.movie_title || reservation.title}</h3>
+                    <div class="movie-details">
+                        <span class="movie-genre">${reservation.genre}</span>
+                        <span class="movie-duration">${reservation.duration} min</span>
+                    </div>
+                    <div class="reservation-date">
+                        <span class="date-icon">📅</span>
+                        <span>${formattedDate}</span>
+                        <span class="time-icon">🕒</span>
+                        <span>${formatTime(reservation.screening_time)}</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="reservation-actions">
-            <a href="reserve.php?id=${reservation.id_screening}" class="view-btn">Zobrazit rezervaci</a>
-            ${!isPast ? `<button class="cancel-btn" data-id="${reservation.id_reservation}">Zrušit rezervaci</button>` : ''}
-        </div>
-    `;
+            <div class="reservation-seats">
+                <h4>Rezervovaná místa</h4>
+                <div class="seats-grid">
+                    <div class="seat">
+                        <span class="seat-number">${reservation.seat_number}</span>
+                  
+                    </div>
+                </div>
+            </div>
+            <div class="reservation-actions">
+                <a href="reserve.php?id=${reservation.id_screening}" class="view-btn">Zobrazit rezervaci</a>
+                ${!isPast ? `<button class="cancel-btn" data-id="${reservation.id_reservation}">Zrušit rezervaci</button>` : ''}
+            </div>
+        `;
 
         // Přidání event listeneru pro zrušení rezervace
         const cancelBtn = card.querySelector('.cancel-btn');
@@ -247,13 +256,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Zavření modálu
                 closeModals();
                 
-                alert('Rezervace byla úspěšně zrušena.');
+                showToast('Rezervace byla úspěšně zrušena.', 'success');
             } else {
                 throw new Error(result.message || 'Nepodařilo se zrušit rezervaci.');
             }
         } catch (error) {
             console.error('Chyba při rušení rezervace:', error);
-            alert(error.message || 'Došlo k chybě při rušení rezervace.');
+            showToast(error.message || 'Došlo k chybě při rušení rezervace.', 'error');
             closeModals();
         }
     }
@@ -262,9 +271,21 @@ document.addEventListener('DOMContentLoaded', function() {
     function formatTime(timeStr) {
         try {
             const times = JSON.parse(timeStr);
-            return times.join(', ');
+            if (Array.isArray(times) && times.length > 0) {
+                return times[0].substring(0, 5);
+            }
+            return timeStr.substring(0, 5);
         } catch {
-            return timeStr;
+            return timeStr.substring(0, 5);
+        }
+    }
+
+    // Zobrazení toast notifikace
+    function showToast(message, type = 'success', duration = 3000) {
+        if (window.showToast) {
+            window.showToast(message, type, duration);
+        } else {
+            alert(message);
         }
     }
 

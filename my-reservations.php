@@ -21,7 +21,7 @@ $currentUser = $auth->getCurrentUser();
     <link rel="stylesheet" href="./css/my-reservations.css">
 </head>
 <body>
- <header class="site-header">
+    <header class="site-header">
         <div class="back-button">
             <a href="index.php" id="back-link">
                 <span class="back-arrow">&#8592;</span>
@@ -48,12 +48,13 @@ $currentUser = $auth->getCurrentUser();
             <button class="tab-btn" data-tab="past">Historie</button>
         </div>
         
-<!-- Loading indikátor -->
-<div id="loading" class="loading-state">
-    <div class="loading-spinner"></div>
-    <p>Načítám rezervace...</p>
-</div>
-<div class="tab-content" id="upcoming-tab">
+        <!-- Loading indikátor -->
+        <div id="loading" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Načítám rezervace...</p>
+        </div>
+        
+        <div class="tab-content" id="upcoming-tab">
             <!-- Aktuální rezervace budou načteny pomocí JS -->
             <div class="reservation-list">
                 <!-- Obsah bude dynamicky vložen -->
@@ -66,14 +67,6 @@ $currentUser = $auth->getCurrentUser();
                 <!-- Obsah bude dynamicky vložen -->
             </div>
         </div>
-        
-        <!-- Prázdný stav -->
-        <div class="empty-state hidden">
-            <div class="empty-icon">&#128465;</div>
-            <h3>Žádné rezervace</h3>
-            <p>Zatím nemáte žádné rezervace v této kategorii.</p>
-            <a href="index.php" class="browse-btn">Prohlédnout program</a>
-        </div>
     </main>
 
     <!-- Modal pro potvrzení zrušení rezervace -->
@@ -84,7 +77,7 @@ $currentUser = $auth->getCurrentUser();
                 <button class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Opravdu chcete zrušit rezervaci na film <span id="cancel-movie-name">Deadpool a Wolverine</span>?</p>
+                <p>Opravdu chcete zrušit rezervaci na film <span id="cancel-movie-name">Název filmu</span>?</p>
                 <div class="modal-actions">
                     <button class="secondary-btn">Zpět</button>
                     <button class="primary-btn confirm-cancel">Zrušit rezervaci</button>
@@ -92,8 +85,6 @@ $currentUser = $auth->getCurrentUser();
             </div>
         </div>
     </div>
-
-
 
     <script src="./js/my-reservations.js"></script>
     <script src="./js/common.js"></script>

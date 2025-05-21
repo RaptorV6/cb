@@ -62,10 +62,9 @@
         <!-- Stránkování -->
         <div class="pagination">
             <button class="pagination-btn active">1</button>
-            <button class="pagination-btn">2</button>
-            <button class="pagination-btn">3</button>
-            <span class="pagination-dots">...</span>
-            <button class="pagination-btn">10</button>
+    
+
+
             <button class="pagination-next">
                 <span>&#8594;</span>
             </button>
