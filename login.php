@@ -82,7 +82,7 @@ if ($auth->isLoggedIn()) {
                     
                     <div class="form-group checkbox">
                         <input type="checkbox" id="agree-terms" name="agree_terms" required>
-                        <label for="agree-terms">Souhlasím s <a href="#"> podmínkami</a></label>
+                        <label for="agree-terms">Souhlasím s <a href="#" id="terms-link">podmínkami</a></label>
                     </div>
                     
                     <div class="form-group">
@@ -106,5 +106,44 @@ if ($toastMessage):
     });
 </script>
 <?php endif; ?>
+    
+    <div id="terms-modal" class="modal">
+        <div class="modal-content">
+            <span class="close modal-close">&times;</span>
+            <h2>Podmínky používání</h2>
+            <p>Vstupuji do místnosti pouze za předpokladu, že mé „toxické emise“ zůstanou vždy pod únosnou mezí; pokud dojde k překročení, okamžitě místnost opustím až do úplného obnovení dýchatelného ovzduší. Dodržím pravidelnou kontrolu stravy a podle potřeby sáhnu po neutralizačních prostředcích (probiotika, aktivní uhlí, mátový čaj). V případě porušení jakéhokoli ustanovení bez prodlení použiji dostupný osvěžovač vzduchu. Majitel má právo při neúnosné situaci účastníka vyhostit bez možnosti protestu. Opakované porušení pravidel bude oznámeno veřejně jako biologický útok vůči ostatním přítomným osobám. Pokuty se ukládají dle míry přestupku a jejich výtěžek půjde na fond osvěžovačů vzduchu nebo kompenzaci obětem.</p>
+        </div>
+    </div>
+
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the modal
+        var modal = document.getElementById("terms-modal");
+
+        // Get the link that opens the modal
+        var link = document.getElementById("terms-link");
+
+        // Get the <span> element that closes the modal
+        var span = document.querySelector(".modal-close");
+
+        // When the user clicks on the link, open the modal
+        link.onclick = function(event) {
+            event.preventDefault(); // Prevent the link from navigating
+            modal.style.display = "block";
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    });
+</script>
 </html>
