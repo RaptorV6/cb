@@ -276,74 +276,83 @@ document.addEventListener('DOMContentLoaded', function() {
                 card.className = `movie-card${isPast ? " past" : ""}${isUpcoming ? " upcoming" : ""}`;
 
                 const times = formatTimes(movie.screening_time);
-                // Předáváme isPast do formatDateRange
                 const dateRange = formatDateRange(movie.screening_date, movie, isPast);
-
-                // Použití base64 obrázku z api_endpoint.php
                 const imgSrc = movie.image ? `data:image/jpeg;base64,${movie.image}` : 'https://via.placeholder.com/260x390?text=No+Image';
 
-                card.innerHTML = `
-            <div class="movie-image">
-                <img src="${imgSrc}" alt="${movie.title}">
-                <div class="desktop-reserve">
-                    ${isPast ?
-                        "<span class='ended-label'>Projekce skončila</span>" :
-                        `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
-                    }
-                </div>
-            </div>
-            <div class="movie-content">
-                <h3 class="movie-title">${movie.title}</h3>
-                <div class="movie-details">
-                    <div class="movie-meta">
-                        <span class="movie-duration">${movie.duration} min</span>
-                        <span class="movie-genre">${movie.genre}</span>
-                    </div>
-                    <div class="movie-time">
-                        <span class="date">${dateRange}</span>
-                        ${!isUpcoming && !isPast ? `<span class="time">${times}</span>` : ''}
-                    </div>
-                </div>
-                <div class="mobile-reserve">
-                     ${isPast ?
-                        "<span class='ended-label'>Projekce skončila</span>" :
-                        `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
-                    }
-                </div>
-            </div>
-        `;
+                // Zkrácený popis s omezením na 100 znaků
+                const shortDescription = movie.description ?
+                    (movie.description.length > 100 ?
+                        movie.description.substring(0, 100) + '...' :
+                        movie.description) :
+                    'Bez popisu';
 
-        return card;
-    }
+                card.innerHTML = `
+        <div class="movie-image">
+            <img src="${imgSrc}" alt="${movie.title}">
+            <div class="desktop-reserve">
+                ${isPast ?
+                    "<span class='ended-label'>Projekce skončila</span>" :
+                    `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
+                }
+            </div>
+            <div class="movie-description-overlay">
+                <p>${movie.description || 'Popis filmu není k dispozici.'}</p>
+            </div>
+        </div>
+        <div class="movie-content">
+            <h3 class="movie-title">${movie.title}</h3>
+            <div class="movie-details">
+                <div class="movie-meta">
+                    <span class="movie-duration">${movie.duration} min</span>
+                    <span class="movie-genre">${movie.genre}</span>
+                </div>
+                <div class="movie-short-description">${shortDescription}</div>
+                <div class="movie-time">
+                    <span class="date">${dateRange}</span>
+                    ${!isUpcoming && !isPast ? `<span class="time">${times}</span>` : ''}
+                </div>
+            </div>
+            <div class="mobile-reserve">
+                ${isPast ?
+                    "<span class='ended-label'>Projekce skončila</span>" :
+                    `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
+                }
+            </div>
+        </div>
+    `;
+
+    return card;
+}
 
     // Nastavení klikání na karty na mobilních zařízeních
-    function setupMobileCardClicks() {
-        if (window.innerWidth < 768) {
-            const movieCards = document.querySelectorAll('.movie-card:not(.past):not(.upcoming)');
+ function setupMobileCardClicks() {
+    if (window.innerWidth < 768) {
+        const movieCards = document.querySelectorAll('.movie-card:not(.past):not(.upcoming)');
+        
+        movieCards.forEach(card => {
+            const reserveBtn = card.querySelector('.mobile-reserve .reserve-btn');
+            if (!reserveBtn || reserveBtn.classList.contains('disabled')) return;
+
+            const reserveLink = reserveBtn.getAttribute('href');
             
-            movieCards.forEach(card => {
-                const reserveBtn = card.querySelector('.mobile-reserve .reserve-btn');
-                if (!reserveBtn || reserveBtn.classList.contains('disabled')) return;
-
-                const reserveLink = reserveBtn.getAttribute('href');
-                
-                card.addEventListener('click', function(e) {
-                    if (e.target === reserveBtn || reserveBtn.contains(e.target)) return;
-                    window.location.href = reserveLink;
-                });
+            // Při kliknutí na kartu (mimo tlačítko rezervace) přejde na stránku rezervace
+            card.addEventListener('click', function(e) {
+                if (e.target === reserveBtn || reserveBtn.contains(e.target)) return;
+                window.location.href = reserveLink;
             });
-        }
-    }
-
-    // Tooltip pro dlouhé názvy
-    function setupTooltips() {
-        const movieTitles = document.querySelectorAll('.movie-title');
-        movieTitles.forEach(title => {
-            if (title.scrollHeight > title.clientHeight) {
-                title.setAttribute('title', title.textContent);
-            }
         });
     }
+}
+
+    // Tooltip pro dlouhé názvy
+ function setupTooltips() {
+    const movieTitles = document.querySelectorAll('.movie-title');
+    movieTitles.forEach(title => {
+        if (title.scrollHeight > title.clientHeight) {
+            title.setAttribute('title', title.textContent);
+        }
+    });
+}
 
     // Helper functions from original code
     function formatTimes(timeStr) {

@@ -1,6 +1,78 @@
 /* Responzivní styl pro stránku s filmy */
 
 
+/* Styl pro krátký popis filmu na kartě */
+
+.movie-short-description {
+    font-size: 0.85rem;
+    color: #ddd;
+    margin: 8px 0;
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+
+/* Overlay popis pro desktop verzi při hoveru */
+
+.movie-description-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    padding: 15px;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 5;
+    overflow: auto;
+}
+
+.movie-description-overlay p {
+    color: #fff;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    text-align: center;
+}
+
+
+/* Na mobilech zobrazíme zkrácený popis v kartě */
+
+@media (max-width: 767px) {
+    .movie-description-overlay {
+        display: none;
+        /* Skryje overlay pro mobily */
+    }
+}
+
+
+/* Na desktopu se overlay zobrazí při hoveru */
+
+@media (min-width: 768px) {
+    .movie-card:hover .movie-description-overlay {
+        opacity: 1;
+    }
+    /* Skryje zkrácený popis na desktopu pro úsporu místa */
+    .movie-short-description {
+        display: none;
+    }
+}
+
+
+/* Upravíme relativní pozicování pro movie-image */
+
+.movie-image {
+    position: relative;
+}
+
+
 /* Logo v headeru */
 
 .logo h1 {

@@ -1199,6 +1199,78 @@ h2 {
 /* Responzivní styl pro stránku s filmy */
 
 
+/* Styl pro krátký popis filmu na kartě */
+
+.movie-short-description {
+    font-size: 0.85rem;
+    color: #ddd;
+    margin: 8px 0;
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+
+/* Overlay popis pro desktop verzi při hoveru */
+
+.movie-description-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    padding: 15px;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 5;
+    overflow: auto;
+}
+
+.movie-description-overlay p {
+    color: #fff;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    text-align: center;
+}
+
+
+/* Na mobilech zobrazíme zkrácený popis v kartě */
+
+@media (max-width: 767px) {
+    .movie-description-overlay {
+        display: none;
+        /* Skryje overlay pro mobily */
+    }
+}
+
+
+/* Na desktopu se overlay zobrazí při hoveru */
+
+@media (min-width: 768px) {
+    .movie-card:hover .movie-description-overlay {
+        opacity: 1;
+    }
+    /* Skryje zkrácený popis na desktopu pro úsporu místa */
+    .movie-short-description {
+        display: none;
+    }
+}
+
+
+/* Upravíme relativní pozicování pro movie-image */
+
+.movie-image {
+    position: relative;
+}
+
+
 /* Logo v headeru */
 
 .logo h1 {
@@ -1687,146 +1759,7 @@ h2 {
     }
 }
 // File: ./css/my-reservations.css
-/* Styles for My Reservations page */
-
-
-/* Opravy responzivity */
-
-
-/* Kontejner pro obrázek - lepší kontrola na mobilních zařízeních */
-
-.movie-thumbnail-container {
-    width: 80px;
-    min-width: 80px;
-    height: 120px;
-    margin-right: 15px;
-    position: relative;
-    overflow: hidden;
-}
-
-@media (max-width: 600px) {
-    /* Záhlaví karty rezervace na mobilech */
-    .reservation-header {
-        flex-direction: row;
-        /* Zachováme řádkové zobrazení i na mobilech */
-        align-items: flex-start;
-        gap: 10px;
-    }
-    /* Menší, ale stále přiměřený náhled */
-    .movie-thumbnail-container {
-        width: 60px;
-        min-width: 60px;
-        height: 90px;
-    }
-    /* Opravíme styl obrázku */
-    .movie-thumbnail {
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        border-radius: 5px;
-        object-fit: cover;
-    }
-    /* Menší nadpis na mobilech */
-    .movie-title {
-        font-size: 1.1rem;
-    }
-    /* Lepší rozložení tlačítek na malých obrazovkách */
-    .reservation-actions {
-        flex-direction: row;
-        /* Stále v řádku, i na mobilech */
-        justify-content: space-between;
-        flex-wrap: wrap;
-    }
-    .view-btn,
-    .cancel-btn {
-        flex: 1;
-        text-align: center;
-        padding: 8px 5px;
-        font-size: 0.85rem;
-        min-width: 100px;
-    }
-    /* Sedadla přeuspořádat */
-    .seats-grid {
-        justify-content: center;
-    }
-    .seat {
-        min-width: 70px;
-        padding: 8px;
-    }
-    /* Responzivní záložky */
-    .tabs {
-        flex-wrap: wrap;
-    }
-    .tab-btn {
-        flex: 1;
-        min-width: 120px;
-        text-align: center;
-    }
-    /* Prázdný stav na malých obrazovkách */
-    .empty-state {
-        padding: 25px 15px;
-    }
-    .empty-state h3 {
-        font-size: 1.2rem;
-    }
-    .empty-icon {
-        font-size: 2.5rem;
-    }
-}
-
-
-/* Extra malé obrazovky */
-
-@media (max-width: 400px) {
-    .reservation-header {
-        padding: 10px;
-    }
-    .reservation-seats,
-    .reservation-actions {
-        padding: 10px;
-    }
-    .movie-thumbnail-container {
-        width: 50px;
-        min-width: 50px;
-        height: 75px;
-    }
-    .movie-title {
-        font-size: 1rem;
-    }
-    .movie-details,
-    .reservation-date {
-        font-size: 0.8rem;
-    }
-    .view-btn,
-    .cancel-btn {
-        font-size: 0.8rem;
-        padding: 7px 5px;
-    }
-}
-
-
-/* Odstranění zbytečného markerů na prázdném stavu */
-
-.empty-state {
-    margin-top: 0;
-}
-
-
-/* Vylepšení designu prázdného stavu */
-
-.reservation-list .empty-state {
-    margin: 10px 0;
-    width: 100%;
-}
-
-
-/* Opravení responzivity tlačítka pro prohlížení programu */
-
-.browse-btn {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-    display: inline-block;
-}
+/* Moderní styl pro stránku Moje rezervace */
 
 .reservations-container {
     max-width: 900px;
@@ -1839,31 +1772,46 @@ h2 {
     margin-bottom: 25px;
     font-size: 1.8rem;
     text-align: center;
+    font-weight: 700;
+    color: #fff;
 }
 
 
-/* Tabs */
+/* Modernější záložky */
 
 .tabs {
     display: flex;
     justify-content: center;
     gap: 10px;
     margin-bottom: 25px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 8px;
+    border-radius: 30px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .tab-btn {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: none;
     border: none;
     color: #fff;
-    padding: 10px 20px;
-    border-radius: 5px;
+    padding: 10px 25px;
+    border-radius: 25px;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+
+.tab-btn:hover {
+    opacity: 1;
 }
 
 .tab-btn.active {
     background-color: #0cb800;
+    opacity: 1;
+    box-shadow: 0 4px 15px rgba(12, 184, 0, 0.3);
 }
 
 .tab-content {
@@ -1875,7 +1823,7 @@ h2 {
 }
 
 
-/* Reservation cards */
+/* Karty rezervací */
 
 .reservation-list {
     display: flex;
@@ -1886,27 +1834,49 @@ h2 {
 
 .reservation-card {
     background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.reservation-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 .reservation-card.past {
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 .reservation-header {
     display: flex;
-    padding: 15px;
+    padding: 18px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    align-items: center;
+}
+
+.movie-thumbnail-container {
+    width: 80px;
+    min-width: 80px;
+    height: 120px;
+    margin-right: 18px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .movie-thumbnail {
-    width: 80px;
-    height: 120px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    border-radius: 5px;
-    margin-right: 15px;
+    transition: transform 0.3s ease;
+}
+
+.reservation-card:hover .movie-thumbnail {
+    transform: scale(1.05);
 }
 
 .reservation-info {
@@ -1914,25 +1884,40 @@ h2 {
 }
 
 .movie-title {
-    font-size: 1.3rem;
-    margin-bottom: 5px;
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #fff;
 }
 
 .movie-details {
     color: #ccc;
-    font-size: 0.9rem;
-    margin-bottom: 10px;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 15px;
 }
 
 .movie-genre {
-    margin-right: 15px;
+    position: relative;
+}
+
+.movie-genre::after {
+    content: '';
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    width: 1px;
+    height: 80%;
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-50%);
 }
 
 .reservation-date {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     background-color: rgba(255, 255, 255, 0.05);
-    padding: 8px;
-    border-radius: 5px;
+    padding: 10px 12px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -1941,7 +1926,8 @@ h2 {
 
 .date-icon,
 .time-icon {
-    margin-right: 5px;
+    margin-right: 8px;
+    color: #0cb800;
 }
 
 .time-icon {
@@ -1949,46 +1935,53 @@ h2 {
 }
 
 .reservation-seats {
-    padding: 15px;
+    padding: 18px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .reservation-seats h4 {
     font-size: 1rem;
-    margin-bottom: 10px;
-    color: #ccc;
+    margin-bottom: 12px;
+    color: #aaa;
+    font-weight: 500;
 }
 
 .seats-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
 }
 
 .seat {
     background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 5px;
-    padding: 10px;
+    border-radius: 8px;
+    padding: 12px 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
     min-width: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.seat:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .seat-number {
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-size: 1.8rem;
+    font-weight: 700;
     color: #0cb800;
     margin-bottom: 5px;
 }
 
 .seat-label {
-    font-size: 0.8rem;
-    color: #ccc;
+    font-size: 0.85rem;
+    color: #aaa;
 }
 
 .reservation-actions {
-    padding: 15px;
+    padding: 18px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1997,40 +1990,52 @@ h2 {
 }
 
 .view-btn {
-    padding: 8px 15px;
+    padding: 10px 18px;
     border: none;
-    border-radius: 5px;
-    font-size: 0.9rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
     cursor: pointer;
-    background-color: #2196F3;
+    background-color: rgba(33, 150, 243, 0.8);
     color: white;
     text-decoration: none;
     display: inline-block;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .view-btn:hover {
-    background-color: #0b7dda;
+    background-color: rgba(33, 150, 243, 1);
+    transform: translateY(-2px);
 }
 
 .cancel-btn {
-    padding: 8px 15px;
+    padding: 10px 18px;
     border: none;
-    border-radius: 5px;
-    font-size: 0.9rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
     cursor: pointer;
-    background-color: #f44336;
+    background-color: rgba(244, 67, 54, 0.8);
     color: white;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+    background-color: rgba(244, 67, 54, 1);
+    transform: translateY(-2px);
 }
 
 
-/* Empty state */
+/* Prázdný stav - modernější vzhled */
 
 .empty-state {
     text-align: center;
     padding: 40px 20px;
     background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
+    border-radius: 12px;
     margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    animation: fadeIn 0.3s ease;
 }
 
 .empty-state.hidden {
@@ -2038,37 +2043,45 @@ h2 {
 }
 
 .empty-icon {
-    font-size: 3rem;
-    margin-bottom: 15px;
+    font-size: 3.5rem;
+    margin-bottom: 20px;
     opacity: 0.5;
+    color: #0cb800;
 }
 
 .empty-state h3 {
     font-size: 1.5rem;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    font-weight: 600;
 }
 
 .empty-state p {
     color: #ccc;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    max-width: 80%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .browse-btn {
     display: inline-block;
     background-color: #0cb800;
     color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
+    padding: 12px 25px;
+    border-radius: 8px;
     text-decoration: none;
-    transition: background-color 0.3s ease;
+    transition: all 0.2s ease;
+    font-weight: 500;
 }
 
 .browse-btn:hover {
     background-color: #09a100;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(12, 184, 0, 0.3);
 }
 
 
-/* Modal */
+/* Modal se zaobleným designem */
 
 .modal {
     display: none;
@@ -2080,31 +2093,36 @@ h2 {
     background-color: rgba(0, 0, 0, 0.8);
     z-index: 1000;
     overflow-y: auto;
+    backdrop-filter: blur(5px);
 }
 
 .modal.active {
     display: block;
+    animation: fadeIn 0.3s ease;
 }
 
 .modal-content {
     background-color: #333;
-    border-radius: 8px;
+    border-radius: 12px;
     width: 90%;
     max-width: 500px;
     margin: 80px auto 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
+    padding: 18px 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .modal-title {
     font-size: 1.3rem;
     margin: 0;
+    font-weight: 600;
 }
 
 .close-btn {
@@ -2113,26 +2131,33 @@ h2 {
     color: #ccc;
     font-size: 1.5rem;
     cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+    color: #fff;
 }
 
 .modal-body {
-    padding: 20px;
+    padding: 25px;
 }
 
 .modal-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
+    gap: 15px;
+    margin-top: 25px;
 }
 
 .primary-btn,
 .secondary-btn {
     padding: 10px 20px;
     border: none;
-    border-radius: 5px;
-    font-size: 0.9rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
     cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
 }
 
 .primary-btn {
@@ -2140,42 +2165,108 @@ h2 {
     color: white;
 }
 
+.primary-btn:hover {
+    background-color: #09a100;
+    transform: translateY(-2px);
+}
+
 .secondary-btn {
     background-color: rgba(255, 255, 255, 0.1);
     color: #fff;
+}
+
+.secondary-btn:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
 }
 
 .primary-btn.confirm-cancel {
     background-color: #f44336;
 }
 
+.primary-btn.confirm-cancel:hover {
+    background-color: #e53935;
+}
 
-/* Responsive adjustments */
+
+/* Animace pro plynulé zobrazení */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* Responzivní úpravy */
+
+@media (max-width: 768px) {
+    .movie-title {
+        font-size: 1.2rem;
+    }
+    .seat {
+        min-width: 80px;
+    }
+    .reservation-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .view-btn,
+    .cancel-btn {
+        text-align: center;
+    }
+}
 
 @media (max-width: 600px) {
     .reservation-header {
         flex-direction: column;
-    }
-    .movie-thumbnail {
-        width: 100%;
-        height: 150px;
-        margin-bottom: 15px;
-        margin-right: 0;
-    }
-    .reservation-actions {
-        flex-direction: column;
         align-items: flex-start;
     }
-    .reservation-code {
-        margin-bottom: 10px;
-    }
-    .cancel-btn,
-    .rate-btn {
+    .movie-thumbnail-container {
         width: 100%;
-        padding: 10px;
+        height: 160px;
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    .seats-grid {
+        justify-content: center;
     }
     .seat {
-        min-width: 80px;
+        min-width: 70px;
+        padding: 8px;
+    }
+    .tabs {
+        padding: 5px;
+        border-radius: 20px;
+    }
+    .tab-btn {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+}
+
+
+/* Oprava pro menší zařízení */
+
+@media (max-width: 480px) {
+    .movie-thumbnail-container {
+        height: 140px;
+    }
+    .seat-number {
+        font-size: 1.4rem;
+    }
+    .modal-content {
+        width: 95%;
+        margin-top: 60px;
+    }
+    .tab-btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
     }
 }
 // File: ./css/toast.css
@@ -3197,10 +3288,9 @@ return [ // Use return instead of defining a global variable
         <!-- Stránkování -->
         <div class="pagination">
             <button class="pagination-btn active">1</button>
-            <button class="pagination-btn">2</button>
-            <button class="pagination-btn">3</button>
-            <span class="pagination-dots">...</span>
-            <button class="pagination-btn">10</button>
+    
+
+
             <button class="pagination-next">
                 <span>&#8594;</span>
             </button>
@@ -4306,74 +4396,83 @@ document.addEventListener('DOMContentLoaded', function() {
                 card.className = `movie-card${isPast ? " past" : ""}${isUpcoming ? " upcoming" : ""}`;
 
                 const times = formatTimes(movie.screening_time);
-                // Předáváme isPast do formatDateRange
                 const dateRange = formatDateRange(movie.screening_date, movie, isPast);
-
-                // Použití base64 obrázku z api_endpoint.php
                 const imgSrc = movie.image ? `data:image/jpeg;base64,${movie.image}` : 'https://via.placeholder.com/260x390?text=No+Image';
 
-                card.innerHTML = `
-            <div class="movie-image">
-                <img src="${imgSrc}" alt="${movie.title}">
-                <div class="desktop-reserve">
-                    ${isPast ?
-                        "<span class='ended-label'>Projekce skončila</span>" :
-                        `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
-                    }
-                </div>
-            </div>
-            <div class="movie-content">
-                <h3 class="movie-title">${movie.title}</h3>
-                <div class="movie-details">
-                    <div class="movie-meta">
-                        <span class="movie-duration">${movie.duration} min</span>
-                        <span class="movie-genre">${movie.genre}</span>
-                    </div>
-                    <div class="movie-time">
-                        <span class="date">${dateRange}</span>
-                        ${!isUpcoming && !isPast ? `<span class="time">${times}</span>` : ''}
-                    </div>
-                </div>
-                <div class="mobile-reserve">
-                     ${isPast ?
-                        "<span class='ended-label'>Projekce skončila</span>" :
-                        `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
-                    }
-                </div>
-            </div>
-        `;
+                // Zkrácený popis s omezením na 100 znaků
+                const shortDescription = movie.description ?
+                    (movie.description.length > 100 ?
+                        movie.description.substring(0, 100) + '...' :
+                        movie.description) :
+                    'Bez popisu';
 
-        return card;
-    }
+                card.innerHTML = `
+        <div class="movie-image">
+            <img src="${imgSrc}" alt="${movie.title}">
+            <div class="desktop-reserve">
+                ${isPast ?
+                    "<span class='ended-label'>Projekce skončila</span>" :
+                    `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
+                }
+            </div>
+            <div class="movie-description-overlay">
+                <p>${movie.description || 'Popis filmu není k dispozici.'}</p>
+            </div>
+        </div>
+        <div class="movie-content">
+            <h3 class="movie-title">${movie.title}</h3>
+            <div class="movie-details">
+                <div class="movie-meta">
+                    <span class="movie-duration">${movie.duration} min</span>
+                    <span class="movie-genre">${movie.genre}</span>
+                </div>
+                <div class="movie-short-description">${shortDescription}</div>
+                <div class="movie-time">
+                    <span class="date">${dateRange}</span>
+                    ${!isUpcoming && !isPast ? `<span class="time">${times}</span>` : ''}
+                </div>
+            </div>
+            <div class="mobile-reserve">
+                ${isPast ?
+                    "<span class='ended-label'>Projekce skončila</span>" :
+                    `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
+                }
+            </div>
+        </div>
+    `;
+
+    return card;
+}
 
     // Nastavení klikání na karty na mobilních zařízeních
-    function setupMobileCardClicks() {
-        if (window.innerWidth < 768) {
-            const movieCards = document.querySelectorAll('.movie-card:not(.past):not(.upcoming)');
+ function setupMobileCardClicks() {
+    if (window.innerWidth < 768) {
+        const movieCards = document.querySelectorAll('.movie-card:not(.past):not(.upcoming)');
+        
+        movieCards.forEach(card => {
+            const reserveBtn = card.querySelector('.mobile-reserve .reserve-btn');
+            if (!reserveBtn || reserveBtn.classList.contains('disabled')) return;
+
+            const reserveLink = reserveBtn.getAttribute('href');
             
-            movieCards.forEach(card => {
-                const reserveBtn = card.querySelector('.mobile-reserve .reserve-btn');
-                if (!reserveBtn || reserveBtn.classList.contains('disabled')) return;
-
-                const reserveLink = reserveBtn.getAttribute('href');
-                
-                card.addEventListener('click', function(e) {
-                    if (e.target === reserveBtn || reserveBtn.contains(e.target)) return;
-                    window.location.href = reserveLink;
-                });
+            // Při kliknutí na kartu (mimo tlačítko rezervace) přejde na stránku rezervace
+            card.addEventListener('click', function(e) {
+                if (e.target === reserveBtn || reserveBtn.contains(e.target)) return;
+                window.location.href = reserveLink;
             });
-        }
-    }
-
-    // Tooltip pro dlouhé názvy
-    function setupTooltips() {
-        const movieTitles = document.querySelectorAll('.movie-title');
-        movieTitles.forEach(title => {
-            if (title.scrollHeight > title.clientHeight) {
-                title.setAttribute('title', title.textContent);
-            }
         });
     }
+}
+
+    // Tooltip pro dlouhé názvy
+ function setupTooltips() {
+    const movieTitles = document.querySelectorAll('.movie-title');
+    movieTitles.forEach(title => {
+        if (title.scrollHeight > title.clientHeight) {
+            title.setAttribute('title', title.textContent);
+        }
+    });
+}
 
     // Helper functions from original code
     function formatTimes(timeStr) {
@@ -4435,9 +4534,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 tabContents.forEach(c => c.classList.add('hidden'));
                 const activeTab = document.getElementById(`${tabId}-tab`);
                 activeTab.classList.remove('hidden');
-
-                // Kontrola prázdného stavu
-                checkEmptyState(activeTab);
             }
 
             // Načtení rezervací
@@ -4454,26 +4550,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (response.ok && Array.isArray(result)) {
                         updateReservationsUI(result);
-                        // Aktivujeme záložku "aktuální"
-                        document.querySelector('[data-tab="upcoming"]').click();
+
+                        // DŮLEŽITÁ ZMĚNA: Nejprve zajistíme, že jsou všechny záložky správně inicializovány
+                        tabContents.forEach(c => c.classList.add('hidden'));
+                        const upcomingTab = document.getElementById('upcoming-tab');
+                        upcomingTab.classList.remove('hidden');
+
+                        // Aktivujeme záložku "aktuální" pomocí switchTab, která správně aktualizuje UI
+                        const upcomingBtn = document.querySelector('[data-tab="upcoming"]');
+                        tabBtns.forEach(b => b.classList.remove('active'));
+                        upcomingBtn.classList.add('active');
                     } else {
                         console.error('Chyba při načítání rezervací:', result);
                         const errorMessage = result && result.message ? result.message : 'Nepodařilo se načíst rezervace. Zkuste to prosím znovu.';
-                        alert(errorMessage);
+                        showToast(errorMessage, 'error');
                         updateReservationsUI([]);
                     }
                 } catch (error) {
                     console.error('Chyba při zpracování odpovědi rezervací:', error);
-                    alert('Došlo k chybě při komunikaci se serverem. Zkuste to prosím znovu.');
+                    showToast('Došlo k chybě při komunikaci se serverem. Zkuste to prosím znovu.', 'error');
+                    updateReservationsUI([]);
                 } finally {
                     // Skrýt loading indikátor po načtení
-                    const loadingIndicator = document.getElementById('loading');
-                    if (loadingIndicator) loadingIndicator.style.display = 'none';
-                    const tabContents = document.querySelectorAll('.tab-content');
-                    tabContents.forEach(c => c.classList.remove('hidden')); // Zobrazit záložky po načítání
+                    loadingIndicator.style.display = 'none';
                 }
             }
 
+            // Aktualizace UI rezervací
             // Aktualizace UI rezervací
             function updateReservationsUI(reservations) {
                 const upcomingTab = document.getElementById('upcoming-tab');
@@ -4486,6 +4589,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const now = new Date();
                 let upcomingCount = 0;
                 let pastCount = 0;
+
+                // Filtrujeme pouze aktivní rezervace
+                reservations = reservations.filter(reservation =>
+                    reservation.status === undefined || reservation.status === 'active'
+                );
 
                 reservations.forEach(reservation => {
                     try {
@@ -4506,7 +4614,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Vytvoříme datum promítání
                         const screeningDateTime = new Date(`${screeningDate}T${screeningTime}`);
 
-                        // JEDNODUCHÁ LOGIKA: Pokud datum promítání je v minulosti, je to historie
+                        // DŮLEŽITÁ ZMĚNA: Pokud datum promítání je v minulosti, je to historie
                         const isPast = screeningDateTime < now;
 
                         // Vytvoříme kartu rezervace
@@ -4542,7 +4650,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const emptyState = document.createElement('div');
                 emptyState.className = 'empty-state';
                 emptyState.innerHTML = `
-            <div class="empty-icon">&#128465;</div>
+            <div class="empty-icon">🗑️</div>
             <h3>Žádné rezervace</h3>
             <p>Zatím nemáte žádné rezervace v této kategorii.</p>
             <a href="index.php" class="browse-btn">Prohlédnout program</a>
@@ -4561,7 +4669,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // Vytvoření karty rezervace s lepší podporou responzivity
+            // Vytvoření karty rezervace
             function createReservationCard(reservation, isPast) {
                 const card = document.createElement('div');
                 card.className = `reservation-card${isPast ? ' past' : ''}`;
@@ -4576,38 +4684,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 card.innerHTML = `
-        <div class="reservation-header">
-            <div class="movie-thumbnail-container">
-                <img src="data:image/jpeg;base64,${reservation.image}" alt="${reservation.movie_title || reservation.title}" class="movie-thumbnail">
-            </div>
-            <div class="reservation-info">
-                <h3 class="movie-title">${reservation.movie_title || reservation.title}</h3>
-                <div class="movie-details">
-                    <span class="movie-genre">${reservation.genre}</span>
-                    <span class="movie-duration">${reservation.duration} min</span>
+            <div class="reservation-header">
+                <div class="movie-thumbnail-container">
+                    <img src="data:image/jpeg;base64,${reservation.image}" alt="${reservation.movie_title || reservation.title}" class="movie-thumbnail">
                 </div>
-                <div class="reservation-date">
-                    <span class="date-icon">&#128197;</span>
-                    <span>${formattedDate}</span>
-                    <span class="time-icon">&#128336;</span>
-                    <span>${formatTime(reservation.screening_time)}</span>
-                </div>
-            </div>
-        </div>
-        <div class="reservation-seats">
-            <h4>Rezervovaná místa</h4>
-            <div class="seats-grid">
-                <div class="seat">
-                    <span class="seat-number">${reservation.seat_number}</span>
-                    
+                <div class="reservation-info">
+                    <h3 class="movie-title">${reservation.movie_title || reservation.title}</h3>
+                    <div class="movie-details">
+                        <span class="movie-genre">${reservation.genre}</span>
+                        <span class="movie-duration">${reservation.duration} min</span>
+                    </div>
+                    <div class="reservation-date">
+                        <span class="date-icon">📅</span>
+                        <span>${formattedDate}</span>
+                        <span class="time-icon">🕒</span>
+                        <span>${formatTime(reservation.screening_time)}</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="reservation-actions">
-            <a href="reserve.php?id=${reservation.id_screening}" class="view-btn">Zobrazit rezervaci</a>
-            ${!isPast ? `<button class="cancel-btn" data-id="${reservation.id_reservation}">Zrušit rezervaci</button>` : ''}
-        </div>
-    `;
+            <div class="reservation-seats">
+                <h4>Rezervovaná místa</h4>
+                <div class="seats-grid">
+                    <div class="seat">
+                        <span class="seat-number">${reservation.seat_number}</span>
+                  
+                    </div>
+                </div>
+            </div>
+            <div class="reservation-actions">
+                <a href="reserve.php?id=${reservation.id_screening}" class="view-btn">Zobrazit rezervaci</a>
+                ${!isPast ? `<button class="cancel-btn" data-id="${reservation.id_reservation}">Zrušit rezervaci</button>` : ''}
+            </div>
+        `;
 
         // Přidání event listeneru pro zrušení rezervace
         const cancelBtn = card.querySelector('.cancel-btn');
@@ -4660,13 +4768,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Zavření modálu
                 closeModals();
                 
-                alert('Rezervace byla úspěšně zrušena.');
+                showToast('Rezervace byla úspěšně zrušena.', 'success');
             } else {
                 throw new Error(result.message || 'Nepodařilo se zrušit rezervaci.');
             }
         } catch (error) {
             console.error('Chyba při rušení rezervace:', error);
-            alert(error.message || 'Došlo k chybě při rušení rezervace.');
+            showToast(error.message || 'Došlo k chybě při rušení rezervace.', 'error');
             closeModals();
         }
     }
@@ -4675,9 +4783,21 @@ document.addEventListener('DOMContentLoaded', function() {
     function formatTime(timeStr) {
         try {
             const times = JSON.parse(timeStr);
-            return times.join(', ');
+            if (Array.isArray(times) && times.length > 0) {
+                return times[0].substring(0, 5);
+            }
+            return timeStr.substring(0, 5);
         } catch {
-            return timeStr;
+            return timeStr.substring(0, 5);
+        }
+    }
+
+    // Zobrazení toast notifikace
+    function showToast(message, type = 'success', duration = 3000) {
+        if (window.showToast) {
+            window.showToast(message, type, duration);
+        } else {
+            alert(message);
         }
     }
 
@@ -5220,7 +5340,7 @@ $currentUser = $auth->getCurrentUser();
     <link rel="stylesheet" href="./css/my-reservations.css">
 </head>
 <body>
- <header class="site-header">
+    <header class="site-header">
         <div class="back-button">
             <a href="index.php" id="back-link">
                 <span class="back-arrow">&#8592;</span>
@@ -5247,12 +5367,13 @@ $currentUser = $auth->getCurrentUser();
             <button class="tab-btn" data-tab="past">Historie</button>
         </div>
         
-<!-- Loading indikátor -->
-<div id="loading" class="loading-state">
-    <div class="loading-spinner"></div>
-    <p>Načítám rezervace...</p>
-</div>
-<div class="tab-content" id="upcoming-tab">
+        <!-- Loading indikátor -->
+        <div id="loading" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Načítám rezervace...</p>
+        </div>
+        
+        <div class="tab-content" id="upcoming-tab">
             <!-- Aktuální rezervace budou načteny pomocí JS -->
             <div class="reservation-list">
                 <!-- Obsah bude dynamicky vložen -->
@@ -5265,14 +5386,6 @@ $currentUser = $auth->getCurrentUser();
                 <!-- Obsah bude dynamicky vložen -->
             </div>
         </div>
-        
-        <!-- Prázdný stav -->
-        <div class="empty-state hidden">
-            <div class="empty-icon">&#128465;</div>
-            <h3>Žádné rezervace</h3>
-            <p>Zatím nemáte žádné rezervace v této kategorii.</p>
-            <a href="index.php" class="browse-btn">Prohlédnout program</a>
-        </div>
     </main>
 
     <!-- Modal pro potvrzení zrušení rezervace -->
@@ -5283,7 +5396,7 @@ $currentUser = $auth->getCurrentUser();
                 <button class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Opravdu chcete zrušit rezervaci na film <span id="cancel-movie-name">Deadpool a Wolverine</span>?</p>
+                <p>Opravdu chcete zrušit rezervaci na film <span id="cancel-movie-name">Název filmu</span>?</p>
                 <div class="modal-actions">
                     <button class="secondary-btn">Zpět</button>
                     <button class="primary-btn confirm-cancel">Zrušit rezervaci</button>
@@ -5291,8 +5404,6 @@ $currentUser = $auth->getCurrentUser();
             </div>
         </div>
     </div>
-
-
 
     <script src="./js/my-reservations.js"></script>
     <script src="./js/common.js"></script>
@@ -5966,40 +6077,38 @@ class Reservation {
      * If user is not admin, automatically filters by logged-in user.
      * @return array List of reservations or error message.
      */
-    public function getReservations() {
-        if (!$this->auth->isLoggedIn()) {
-             return ['status' => 'error', 'message' => 'Pro zobrazení rezervací musíte být přihlášeni.'];
-        }
-
-        $userId = !$this->auth->isAdmin() ? $_SESSION['user_id'] : null;
-
-        try {
-            $sql = "
-                SELECT r.id_reservation, r.id_user, r.id_screening, r.id_seat, r.status, r.created_at, 
-                       s.title, s.screening_date, s.screening_time, s.genre, s.duration, encode(s.image, 'base64') as image,
-                       seat.seat_number
-                FROM reservations r
-                JOIN screenings s ON r.id_screening = s.id_screening
-                JOIN seats seat ON r.id_seat = seat.id_seat
-            ";
-
-            if ($userId) {
-                $sql .= " WHERE r.id_user = :userId ORDER BY r.created_at DESC"; // Oprava ORDER BY
-                $stmt = $this->pdo->prepare($sql);
-                $stmt->execute(['userId' => $userId]);
-            } else {
-                // Admin gets all reservations
-                $sql .= " ORDER BY r.created_at DESC"; // Oprava ORDER BY
-                $stmt = $this->pdo->query($sql);
-            }
-
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            error_log("Reservation Error (getReservations): " . $e->getMessage());
-            // Dočasně vracíme konkrétní PDOException message pro ladění
-            return ['status' => 'error', 'message' => 'Chyba DB: ' . $e->getMessage()];
-        }
+public function getReservations() {
+    if (!$this->auth->isLoggedIn()) {
+         return ['status' => 'error', 'message' => 'Pro zobrazení rezervací musíte být přihlášeni.'];
     }
+
+    $userId = !$this->auth->isAdmin() ? $_SESSION['user_id'] : null;
+
+    try {
+        $sql = "
+            SELECT r.id_reservation, r.id_user, r.id_screening, r.id_seat, r.status, r.created_at, 
+                   s.title, s.screening_date, s.screening_time, s.genre, s.duration, encode(s.image, 'base64') as image,
+                   seat.seat_number
+            FROM reservations r
+            JOIN screenings s ON r.id_screening = s.id_screening
+            JOIN seats seat ON r.id_seat = seat.id_seat
+            WHERE r.status = 'active' " . ($userId ? " AND r.id_user = :userId" : "") . "
+            ORDER BY r.created_at DESC";
+
+        if ($userId) {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute(['userId' => $userId]);
+        } else {
+            // Admin gets all active reservations
+            $stmt = $this->pdo->query($sql);
+        }
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Reservation Error (getReservations): " . $e->getMessage());
+        return ['status' => 'error', 'message' => 'Chyba DB: ' . $e->getMessage()];
+    }
+}
 
     /**
      * Get available seats for a specific screening.
