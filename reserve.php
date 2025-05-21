@@ -2,6 +2,7 @@
 <html lang="cs">
 
 <head>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="./css/toast.css">
     <script src="./js/toast.js"></script>
     <meta charset="UTF-8">

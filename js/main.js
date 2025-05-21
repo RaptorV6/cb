@@ -289,14 +289,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 card.innerHTML = `
         <div class="movie-image">
             <img src="${imgSrc}" alt="${movie.title}">
-            <div class="desktop-reserve">
-                ${isPast ?
-                    "<span class='ended-label'>Projekce skončila</span>" :
-                    `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
-                }
-            </div>
             <div class="movie-description-overlay">
                 <p>${movie.description || 'Popis filmu není k dispozici.'}</p>
+                ${!isPast ? 
+                    `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 20;">Rezervovat</a>` 
+                    : 
+                    "<span class='ended-label' style='position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);'>Projekce skončila</span>"
+                }
             </div>
         </div>
         <div class="movie-content">
