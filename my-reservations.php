@@ -11,6 +11,8 @@ $currentUser = $auth->getCurrentUser();
 <!DOCTYPE html>
 <html lang="cs">
 <head>
+    <link rel="stylesheet" href="./css/toast.css">
+    <script src="./js/toast.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moje rezervace | CineBukay</title>
@@ -85,5 +87,16 @@ $currentUser = $auth->getCurrentUser();
 
     <script src="./js/my-reservations.js"></script>
     <script src="./js/common.js"></script>
+<?php
+// Kontrola toast zprávy ze session
+$toastMessage = getToastMessage();
+if ($toastMessage): 
+?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        showToast('<?php echo addslashes($toastMessage['message']); ?>', '<?php echo $toastMessage['type']; ?>');
+    });
+</script>
+<?php endif; ?>
 </body>
 </html>

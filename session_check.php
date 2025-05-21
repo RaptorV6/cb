@@ -1,4 +1,33 @@
 <?php
+// Do souboru session_check.php přidejte následující funkce
+function setToastMessage($message, $type = 'success') {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $_SESSION['toast_message'] = $message;
+    $_SESSION['toast_type'] = $type;
+}
+
+function getToastMessage() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    
+    if (isset($_SESSION['toast_message']) && isset($_SESSION['toast_type'])) {
+        $message = $_SESSION['toast_message'];
+        $type = $_SESSION['toast_type'];
+        
+        // Odstraníme zprávu ze session
+        unset($_SESSION['toast_message']);
+        unset($_SESSION['toast_type']);
+        
+        return ['message' => $message, 'type' => $type];
+    }
+    
+    return null;
+}
+?>
+<?php
 // File: session_check.php
 // Provides helper functions related to authentication state using the Auth class.
 

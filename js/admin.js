@@ -122,15 +122,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Server response:', result);
 
                     if (result.status === 'success') {
-                        alert(result.message);
+                        showToast(result.message, 'success');
                         closeModals();
                         loadMovies(); // Znovu načíst po úspěšné akci
                     } else {
-                        throw new Error(result.message || 'Neznámá chyba serveru.');
+                        showToast(result.message, 'error');
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert(`Chyba při ${formAction === 'add' ? 'přidávání' : 'aktualizaci'} filmu: ${error.message}`);
+                    showToast(`Chyba při ${formAction === 'add' ? 'přidávání' : 'aktualizaci'} filmu: ${error.message}`, 'error');
                 }
             });
 
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const file = e.target.files[0];
                 if (file) {
                     if (!file.type.startsWith('image/')) {
-                        alert('Prosím vyberte pouze obrázky');
+                        showToast('Prosím vyberte pouze obrázky', 'error');
                         return;
                     }
 
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Zpracování odpovědi - může obsahovat 'status' => 'error'
                     if (movies.status === 'error') {
                         console.error('Chyba při načítání filmů:', movies.message);
-                        alert('Nepodařilo se načíst filmy: ' + movies.message);
+                        showToast('Nepodařilo se načíst filmy: ' + movies.message, 'error');
                         return;
                     }
 
@@ -217,11 +217,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         displayMoviesPage(currentPage);
                     } else {
                         console.error('Neplatná odpověď ze serveru:', movies);
-                        alert('Obdržena neplatná odpověď ze serveru.');
+                        showToast('Obdržena neplatná odpověď ze serveru.', 'error');
                     }
                 } catch (error) {
                     console.error('Chyba při načítání filmů:', error);
-                    alert('Chyba při komunikaci se serverem při načítání filmů.');
+                    showToast('Chyba při komunikaci se serverem při načítání filmů.', 'error');
                     if (loadingIndicator) loadingIndicator.style.display = 'none'; // Skrýt loading i při chybě
                 }
             }
@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (movieData) {
                     editMovie(movieData);
                 } else {
-                    alert('Data filmu pro úpravu nebyla nalezena.');
+                    showToast('Data filmu pro úpravu nebyla nalezena.', 'error');
                     // Alternativně: Zavolat API pro načtení detailu filmu podle ID
                 }
             });
@@ -401,6 +401,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!deleteModal || !movieNameSpan || !confirmBtn || !cancelBtn || !closeBtn) {
             console.error('Chybí elementy v delete modalu!');
+            showToast('Chybí elementy v delete modalu!', 'error');
             return;
         }
 
@@ -440,15 +441,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
 
             if (result.status === 'success') {
-                alert(result.message);
+                showToast(result.message, 'success');
                 closeModals();
                 loadMovies(); // Znovu načíst seznam filmů
             } else {
-                throw new Error(result.message);
+                showToast(result.message, 'error');
             }
         } catch (error) {
             console.error('Chyba při mazání filmu:', error);
-            alert(`Chyba při mazání filmu: ${error.message}`);
+            showToast(`Chyba při mazání filmu: ${error.message}`, 'error');
             closeModals(); // Zavřít modal i při chybě
         }
     }
@@ -503,6 +504,29 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error("Chyba formátování data:", e);
             return dateStr; // Vrať původní string v případě chyby
         }
+    }
+
+    // Helper funkce
+    function closeModals() {
+        movieModal.classList.remove('active');
+        deleteModal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function resetForm() {
+        movieForm.reset();
+        movieIdInput.value = ''; // Vyčistit ID
+        modalTitle.textContent = 'Přidat nový film'; // Resetovat nadpis
+        genreTags.innerHTML = '';
+        imageUpload.innerHTML = `
+            <div class="upload-icon">📷</div>
+            <div>Nahrát obrázek</div>
+        `;
+        document.getElementById('movie-datetime').value = ''; // Reset datetime pole
+    }
+    
+    function showToast(message, type = 'success', duration = 3000) {
+        window.showToast(message, type, duration);
     }
 
     // --- Funkce pro úpravu filmu ---

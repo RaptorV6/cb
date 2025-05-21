@@ -127,33 +127,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Error message helper function
     function showError(form, message) {
-        showMessage(form, message, 'error-message');
+        showToast(message, 'error');
     }
 
     // Success message helper function
     function showSuccess(form, message) {
-        showMessage(form, message, 'success-message');
+        showToast(message, 'success');
     }
 
-    // Generic message helper function
-    function showMessage(form, message, className) {
-        // Check if message element already exists
-        let messageElement = form.querySelector('.' + className);
-
-        // If not, create it
-        if (!messageElement) {
-            messageElement = document.createElement('div');
-            messageElement.className = className;
-            form.insertBefore(messageElement, form.firstChild);
-        }
-
-        // Set message and show
-        messageElement.textContent = message;
-        messageElement.classList.add('visible');
-
-        // Hide after 5 seconds
-        setTimeout(() => {
-            messageElement.classList.remove('visible');
-        }, 5000);
-    }
 });

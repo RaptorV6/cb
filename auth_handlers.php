@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/src/Auth.php'; // Include the Auth class
 require_once __DIR__ . '/db_config.php'; // Needed for Database class auto-loading config
+require_once 'session_check.php';
 
 // Instantiate Auth class (this also starts the session)
 $auth = new Auth();
@@ -35,10 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 break;
             
             // Note: AJAX logout is less common, usually done via GET link, but handle if needed
-            case 'logout': 
-                 $auth->logoutUser();
-                 $response = ['status' => 'success', 'message' => 'Odhlášení proběhlo úspěšně.'];
-                 break;
+            case 'logout':
+                $auth->logoutUser();
+                $response = ['status' => 'success', 'message' => 'Odhlášení proběhlo úspěšně.'];
+                break;
         }
     } catch (Exception $e) {
         // Catch potential exceptions from Auth methods (like DB connection issues)
@@ -56,7 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'logout') {
     $auth->logoutUser();
     // Redirect to login page after logout
-    header("Location: login.php?success=Úspěšně jste se odhlásili.");
+    setToastMessage('Úspěšně jste se odhlásili.');
+    header("Location: login.php");
     exit;
 }
 
