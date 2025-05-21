@@ -2232,6 +2232,18 @@ h2 {
          padding: 0;
          font-family: "Lato", sans-serif;
      }
+     /* Toto přidejte do vestylu.css, pokud tam ještě není */
+     
+     .seat.user-reserved {
+         background-color: #4caf50;
+         /* Zelená barva pro vlastní rezervaci */
+     }
+     /* Speciální styl pro "VAŠE MÍSTO" label */
+     
+     .username-label.user-label {
+         background-color: #4caf50;
+         /* Zelená i pro jmenovku */
+     }
      /* Username label styl - opraveno pro správné umístění nad každým sedadlem */
      
      .username-label {
@@ -4513,7 +4525,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             console.log("Kontrola existující rezervace:", result);
 
-            if (result.found) {
+            // Opravená kontrola
+            if (result && result.found === true && result.id_seat && result.seat_number) {
                 userHasReservation = true;
                 userReservationSeatId = result.id_seat;
 
@@ -4538,6 +4551,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Chyba při kontrole existující rezervace:', error);
+            userHasReservation = false;
+            userReservationSeatId = null;
+
+            // V případě chyby nastavíme text pro vytvoření nové rezervace
+            if (selectionInfo) {
+                selectionInfo.innerHTML = '<p>Vyberte místo, které si přejete rezervovat.</p>';
+            }
+            if (reserveBtn) {
+                reserveBtn.textContent = "Rezervovat místo";
+            }
             throw error;
         }
     }
@@ -4703,7 +4726,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const originalBtnText = this.textContent;
             this.disabled = true;
-            this.textContent = userHasReservation ? 'Přesouvám...' : 'Rezervuji...';
+            this.textContent = userHasReservation ? "Přesouvám..." : "Rezervuji...";
 
             try {
                 const seatId = selectedSeat.replace('seat', '');
@@ -5112,17 +5135,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'get_user_reservation':
                 if (isset($_POST['screening_id'])) {
                     $screeningId = $_POST['screening_id'];
-                    $response = $reservationService->getUserReservationForScreening($screeningId);
-                    // Pokud není nalezena žádná rezervace, vrátíme prázdný objekt, ne null
-                    if ($response === null) {
-                        $response = ['found' => false];
-                    } else {
-                        $response['found'] = true;
-                    }
-                } else {
-                    $response = ['status' => 'error', 'message' => 'Chybí ID promítání.'];
-                }
-                break;
+        $screeningId = $_POST['screening_id'];
+        $reservationData = $reservationService->getUserReservationForScreening($screeningId);
+        
+        // Důkladnější kontrola výsledku
+        if ($reservationData && isset($reservationData['id_reservation']) && 
+            isset($reservationData['id_seat']) && isset($reservationData['seat_number'])) {
+            
+            $response = $reservationData;
+            $response['found'] = true;
+        } else {
+            $response = ['found' => false];
+        }
+    } else {
+        $response = ['status' => 'error', 'message' => 'Chybí ID promítání.'];
+    }
+    break;
             default:
                 $response = ['status' => 'error', 'message' => 'Neznámá akce.'];
                 break;

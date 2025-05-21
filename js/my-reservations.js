@@ -29,6 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Načtení rezervací
             async function loadReservations() {
+                // Zobrazit loading indikátor
+                const loadingIndicator = document.getElementById('loading');
+                const tabContents = document.querySelectorAll('.tab-content');
+                loadingIndicator.style.display = 'flex';
+                tabContents.forEach(c => c.classList.add('hidden')); // Skrýt záložky během načítání
+
                 try {
                     const response = await fetch('reservation_handlers.php');
                     const result = await response.json();
@@ -46,6 +52,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 } catch (error) {
                     console.error('Chyba při zpracování odpovědi rezervací:', error);
                     alert('Došlo k chybě při komunikaci se serverem. Zkuste to prosím znovu.');
+                } finally {
+                    // Skrýt loading indikátor po načtení
+                    const loadingIndicator = document.getElementById('loading');
+                    if (loadingIndicator) loadingIndicator.style.display = 'none';
+                    const tabContents = document.querySelectorAll('.tab-content');
+                    tabContents.forEach(c => c.classList.remove('hidden')); // Zobrazit záložky po načítání
                 }
             }
 

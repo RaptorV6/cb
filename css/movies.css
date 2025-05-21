@@ -94,13 +94,17 @@
 /* Karta filmu - výchozí horizontální zobrazení pro mobil */
 
 .movie-card {
-    background-color: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: row;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s ease;
+    background-color: rgba(16, 16, 25, 0.5);
+    /* Trochu světlejší pozadí */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 20px rgba(12, 184, 0, 0.05);
+    /* Základní zelený glow */
+    transition: all 0.3s ease;
+}
+
+.movie-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), 0 0 30px rgba(12, 184, 0, 0.2);
+    /* Silnější glow při hoveru */
 }
 
 .movie-card:active {

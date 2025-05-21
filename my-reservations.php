@@ -43,7 +43,12 @@ $currentUser = $auth->getCurrentUser();
             <button class="tab-btn" data-tab="past">Historie</button>
         </div>
         
-        <div class="tab-content" id="upcoming-tab">
+<!-- Loading indikátor -->
+<div id="loading" class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Načítám rezervace...</p>
+</div>
+<div class="tab-content" id="upcoming-tab">
             <!-- Aktuální rezervace budou načteny pomocí JS -->
             <div class="reservation-list">
                 <!-- Obsah bude dynamicky vložen -->
