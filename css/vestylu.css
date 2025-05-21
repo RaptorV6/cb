@@ -6,6 +6,18 @@
          padding: 0;
          font-family: "Lato", sans-serif;
      }
+     /* Toto přidejte do vestylu.css, pokud tam ještě není */
+     
+     .seat.user-reserved {
+         background-color: #4caf50;
+         /* Zelená barva pro vlastní rezervaci */
+     }
+     /* Speciální styl pro "VAŠE MÍSTO" label */
+     
+     .username-label.user-label {
+         background-color: #4caf50;
+         /* Zelená i pro jmenovku */
+     }
      /* Username label styl - opraveno pro správné umístění nad každým sedadlem */
      
      .username-label {

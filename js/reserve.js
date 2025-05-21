@@ -47,7 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             console.log("Kontrola existující rezervace:", result);
 
-            if (result.found) {
+            // Opravená kontrola
+            if (result && result.found === true && result.id_seat && result.seat_number) {
                 userHasReservation = true;
                 userReservationSeatId = result.id_seat;
 
@@ -72,6 +73,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Chyba při kontrole existující rezervace:', error);
+            userHasReservation = false;
+            userReservationSeatId = null;
+
+            // V případě chyby nastavíme text pro vytvoření nové rezervace
+            if (selectionInfo) {
+                selectionInfo.innerHTML = '<p>Vyberte místo, které si přejete rezervovat.</p>';
+            }
+            if (reserveBtn) {
+                reserveBtn.textContent = "Rezervovat místo";
+            }
             throw error;
         }
     }
@@ -237,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const originalBtnText = this.textContent;
             this.disabled = true;
-            this.textContent = userHasReservation ? 'Přesouvám...' : 'Rezervuji...';
+            this.textContent = userHasReservation ? "Přesouvám..." : "Rezervuji...";
 
             try {
                 const seatId = selectedSeat.replace('seat', '');

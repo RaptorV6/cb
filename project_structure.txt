@@ -7,6 +7,7 @@
 │   ├── admin.css
 │   ├── movies.css
 │   ├── my-reservations.css
+│   ├── toast.css
 │   ├── vestylu.css
 ├── db_config.php
 ├── includes
@@ -18,6 +19,7 @@
 │   ├── main.js
 │   ├── my-reservations.js
 │   ├── reserve.js
+│   ├── toast.js
 ├── login.php
 ├── my-reservations.php
 ├── project_structure.txt

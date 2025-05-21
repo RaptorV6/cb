@@ -6,6 +6,8 @@ requireLogin(true); // Vyžaduje admin práva
 <!DOCTYPE html>
 <html lang="cs">
 <head>
+    <link rel="stylesheet" href="./css/toast.css">
+    <script src="./js/toast.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin | CineBukay</title>
@@ -178,6 +180,17 @@ requireLogin(true); // Vyžaduje admin práva
     
     <script src="./js/admin.js"></script>
     <script src="./js/common.js"></script>
+<?php
+// Kontrola toast zprávy ze session
+$toastMessage = getToastMessage();
+if ($toastMessage): 
+?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        showToast('<?php echo addslashes($toastMessage['message']); ?>', '<?php echo $toastMessage['type']; ?>');
+    });
+</script>
+<?php endif; ?>
 </body>
 </html>
 
@@ -495,6 +508,7 @@ exit;
 
 require_once __DIR__ . '/src/Auth.php'; // Include the Auth class
 require_once __DIR__ . '/db_config.php'; // Needed for Database class auto-loading config
+require_once 'session_check.php';
 
 // Instantiate Auth class (this also starts the session)
 $auth = new Auth();
@@ -525,10 +539,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 break;
             
             // Note: AJAX logout is less common, usually done via GET link, but handle if needed
-            case 'logout': 
-                 $auth->logoutUser();
-                 $response = ['status' => 'success', 'message' => 'Odhlášení proběhlo úspěšně.'];
-                 break;
+            case 'logout':
+                $auth->logoutUser();
+                $response = ['status' => 'success', 'message' => 'Odhlášení proběhlo úspěšně.'];
+                break;
         }
     } catch (Exception $e) {
         // Catch potential exceptions from Auth methods (like DB connection issues)
@@ -546,7 +560,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'logout') {
     $auth->logoutUser();
     // Redirect to login page after logout
-    header("Location: login.php?success=Úspěšně jste se odhlásili.");
+    setToastMessage('Úspěšně jste se odhlásili.');
+    header("Location: login.php");
     exit;
 }
 
@@ -648,10 +663,6 @@ body {
         bottom: 0;
         width: 200px;
     }
-    .main-content {
-        margin-left: 200px;
-        padding: 20px;
-    }
 }
 
 
@@ -688,10 +699,6 @@ body {
 
 
 /* Hlavní obsah */
-
-.main-content {
-    padding: 90px 15px 20px;
-}
 
 h2 {
     margin-bottom: 20px;
@@ -2157,6 +2164,65 @@ h2 {
         min-width: 80px;
     }
 }
+// File: ./css/toast.css
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    min-width: 250px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transform: translateX(120%);
+    transition: transform 0.4s ease;
+    animation: slideIn 0.4s forwards, fadeOut 0.4s 2.6s forwards;
+}
+
+.toast-success {
+    background-color: #0cb800;
+}
+
+.toast-error {
+    background-color: #f44336;
+}
+
+.toast-info {
+    background-color: #2196F3;
+}
+
+.toast-close {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: white;
+    margin-left: 15px;
+    font-size: 16px;
+}
+
+@keyframes slideIn {
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(120%);
+    }
+}
 // File: ./css/vestylu.css
      /* Include all CSS from the responsive-css artifact here */
      
@@ -2165,6 +2231,38 @@ h2 {
          margin: 0;
          padding: 0;
          font-family: "Lato", sans-serif;
+     }
+     /* Username label styl - opraveno pro správné umístění nad každým sedadlem */
+     
+     .username-label {
+         position: absolute;
+         top: -20px;
+         left: 50%;
+         transform: translateX(-50%);
+         background-color: rgb(93 93 93 / 70%);
+         color: white;
+         border-radius: 3px;
+         padding: 2px 4px;
+         white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis;
+         text-align: center;
+         z-index: 10;
+         line-height: 1;
+     }
+     /* Pro mobily - upravený styl */
+     
+     @media (max-width: 480px) {
+         .username-label {
+             font-size: 8px;
+             padding: 1px 3px;
+             top: -16px;
+         }
+     }
+     /* Upravit nadřazené kontejnery, aby umožnily absolutní pozicování */
+     
+     .seat {
+         position: relative;
      }
      
      body {
@@ -2612,8 +2710,8 @@ h2 {
          display: flex;
          justify-content: center;
          align-items: center;
-         min-height: calc(100vh - 70px);
          padding: 20px;
+         width: 100%;
      }
      
      .auth-box {
@@ -2690,6 +2788,36 @@ h2 {
      
      .form-group {
          margin-bottom: 20px;
+     }
+     /* Styl pro označení vlastní rezervace */
+     
+     .seat.user-reserved {
+         background-color: #4caf50;
+         /* Zelená barva pro vlastní rezervaci */
+     }
+     /* Speciální styl pro "VAŠE MÍSTO" label */
+     
+     .username-label.user-label {
+         background-color: #4caf50;
+         /* Zelená i pro jmenovku */
+     }
+     /* Oprava umístění jmenovek nad sedadly */
+     
+     .username-label {
+         position: absolute;
+         top: -20px;
+         left: 50%;
+         transform: translateX(-50%);
+         background-color: rgba(109, 109, 109, 0.7);
+         color: white;
+         border-radius: 3px;
+         padding: 2px 4px;
+         white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis;
+         text-align: center;
+         z-index: 10;
+         line-height: 1;
      }
      
      .form-group label {
@@ -2799,10 +2927,11 @@ h2 {
      }
      
      .seat-label {
-         color: #0e0e0e;
+         color: #343434;
          position: absolute;
          bottom: 3px;
-         font-size: small;
+         font-size: 10px;
+         font-weight: bolder;
      }
 // File: ./db_config.php
 <?php
@@ -2826,6 +2955,8 @@ return [ // Use return instead of defining a global variable
 <!DOCTYPE html>
 <html lang="cs">
 <head>
+    <link rel="stylesheet" href="./css/toast.css">
+    <script src="./js/toast.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CineBukay | Programy filmů</title>
@@ -2897,6 +3028,17 @@ return [ // Use return instead of defining a global variable
 
     <script src="./js/main.js"></script>
     <script src="./js/common.js"></script>
+<?php
+// Kontrola toast zprávy ze session
+$toastMessage = getToastMessage();
+if ($toastMessage): 
+?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        showToast('<?php echo addslashes($toastMessage['message']); ?>', '<?php echo $toastMessage['type']; ?>');
+    });
+</script>
+<?php endif; ?>
 </body>
 </html>
 
@@ -2914,7 +3056,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const movieIdInput = document.getElementById('movie-id'); // Skryté pole pro ID
             const modalTitle = movieModal.querySelector('.modal-title'); // Nadpis modalu
 
+            // Add pagination state variables
             let allMoviesData = []; // Pole pro uložení načtených dat filmů
+            let currentPage = 1;
+            const moviesPerPage = 10; // Number of movies per page
 
             // Načtení filmů při startu
             loadMovies();
@@ -2988,8 +3133,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 formData.append('genre', genres.join(', ')); // Odeslat jako string oddělený čárkou
 
-                // Časy promítání - odstraněno
-
                 // Přidání obrázku do FormData, pokud byl vybrán
                 const imageInput = document.getElementById('movie-image');
                 const imagePreview = imageUpload.querySelector('img');
@@ -3009,10 +3152,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     formData.append('image', imagePreview.src);
                 }
 
-
-                // Debug výpis - POZOR: Může logovat base64 obrázek!
-                // console.log('Odesílaná data:', Object.fromEntries(formData));
-
                 try {
                     // Použít api_endpoint.php
                     const response = await fetch('api_endpoint.php', {
@@ -3028,15 +3167,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Server response:', result);
 
                     if (result.status === 'success') {
-                        alert(result.message);
+                        showToast(result.message, 'success');
                         closeModals();
                         loadMovies(); // Znovu načíst po úspěšné akci
                     } else {
-                        throw new Error(result.message || 'Neznámá chyba serveru.');
+                        showToast(result.message, 'error');
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert(`Chyba při ${formAction === 'add' ? 'přidávání' : 'aktualizaci'} filmu: ${error.message}`);
+                    showToast(`Chyba při ${formAction === 'add' ? 'přidávání' : 'aktualizaci'} filmu: ${error.message}`, 'error');
                 }
             });
 
@@ -3077,7 +3216,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const file = e.target.files[0];
                 if (file) {
                     if (!file.type.startsWith('image/')) {
-                        alert('Prosím vyberte pouze obrázky');
+                        showToast('Prosím vyberte pouze obrázky', 'error');
                         return;
                     }
 
@@ -3089,11 +3228,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Přidávání časů promítání - odstraněno
-
             // Načtení filmů z API (api_endpoint.php)
             async function loadMovies() {
-                // Zobrazit loading indikátor (předpokládáme existenci #movies-loading)
+                // Zobrazit loading indikátor
                 const loadingIndicator = document.getElementById('movies-loading');
                 const tableBody = document.querySelector('.admin-table tbody');
                 const cardsContainer = document.querySelector('.movies-cards');
@@ -3114,21 +3251,90 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Zpracování odpovědi - může obsahovat 'status' => 'error'
                     if (movies.status === 'error') {
                         console.error('Chyba při načítání filmů:', movies.message);
-                        alert('Nepodařilo se načíst filmy: ' + movies.message);
+                        showToast('Nepodařilo se načíst filmy: ' + movies.message, 'error');
                         return;
                     }
 
                     if (Array.isArray(movies)) {
-                        updateMoviesUI(movies);
+                        // Setup pagination
+                        setupPagination();
+                        // Display first page
+                        displayMoviesPage(currentPage);
                     } else {
                         console.error('Neplatná odpověď ze serveru:', movies);
-                        alert('Obdržena neplatná odpověď ze serveru.');
+                        showToast('Obdržena neplatná odpověď ze serveru.', 'error');
                     }
                 } catch (error) {
                     console.error('Chyba při načítání filmů:', error);
-                    alert('Chyba při komunikaci se serverem při načítání filmů.');
+                    showToast('Chyba při komunikaci se serverem při načítání filmů.', 'error');
                     if (loadingIndicator) loadingIndicator.style.display = 'none'; // Skrýt loading i při chybě
                 }
+            }
+
+            // Function to display a specific page of movies
+            function displayMoviesPage(page) {
+                const startIndex = (page - 1) * moviesPerPage;
+                const endIndex = Math.min(startIndex + moviesPerPage, allMoviesData.length);
+                const moviesToShow = allMoviesData.slice(startIndex, endIndex);
+
+                updateMoviesUI(moviesToShow);
+                updateActivePaginationButton();
+            }
+
+            // Setup pagination based on total movies
+            function setupPagination() {
+                const totalPages = Math.ceil(allMoviesData.length / moviesPerPage);
+                const paginationContainer = document.querySelector('.pagination');
+
+                // Clear pagination container
+                paginationContainer.innerHTML = '';
+
+                // Add page buttons
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                        const btn = document.createElement('button');
+                        btn.className = 'page-btn';
+                        if (i === currentPage) btn.classList.add('active');
+                        btn.textContent = i;
+                        btn.addEventListener('click', function() {
+                            currentPage = i;
+                            displayMoviesPage(currentPage);
+                        });
+                        paginationContainer.appendChild(btn);
+                    } else if ((i === 2 && currentPage > 3) || (i === totalPages - 1 && currentPage < totalPages - 2)) {
+                        // Add dots for pagination
+                        const dots = document.createElement('span');
+                        dots.className = 'pagination-dots';
+                        dots.textContent = '...';
+                        paginationContainer.appendChild(dots);
+                    }
+                }
+
+                // Add next button if there are pages
+                if (totalPages > 0) {
+                    const nextBtn = document.createElement('button');
+                    nextBtn.className = 'next-btn';
+                    nextBtn.innerHTML = '→';
+                    nextBtn.addEventListener('click', function() {
+                        if (currentPage < totalPages) {
+                            currentPage++;
+                            displayMoviesPage(currentPage);
+                        }
+                    });
+                    paginationContainer.appendChild(nextBtn);
+                }
+            }
+
+            // Update the active pagination button
+            function updateActivePaginationButton() {
+                const buttons = document.querySelectorAll('.page-btn');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === currentPage) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
             }
 
             // Aktualizace UI s filmy
@@ -3154,7 +3360,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </td>
                 <td>${movie.genre || 'N/A'}</td>
                 <td>${movie.duration} min</td>
-                <td>${formatDateTime(movie.screening_datetime)}</td>
+                <td>${formatDateTime(movie.screening_date, movie.screening_time)}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="edit-btn" data-id="${movie.id_screening}">Upravit</button>
@@ -3180,7 +3386,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="movie-details">
                     <div class="movie-datetime">
-                        <span class="datetime-label">Promítání:</span> ${formatDateTime(movie.screening_datetime)}
+                        <span class="datetime-label">Promítání:</span> ${formatDateTime(movie.screening_date, movie.screening_time)}
                     </div>
                 </div>
                 <div class="movie-actions">
@@ -3206,7 +3412,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (movieData) {
                     editMovie(movieData);
                 } else {
-                    alert('Data filmu pro úpravu nebyla nalezena.');
+                    showToast('Data filmu pro úpravu nebyla nalezena.', 'error');
                     // Alternativně: Zavolat API pro načtení detailu filmu podle ID
                 }
             });
@@ -3240,6 +3446,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!deleteModal || !movieNameSpan || !confirmBtn || !cancelBtn || !closeBtn) {
             console.error('Chybí elementy v delete modalu!');
+            showToast('Chybí elementy v delete modalu!', 'error');
             return;
         }
 
@@ -3279,15 +3486,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
 
             if (result.status === 'success') {
-                alert(result.message);
+                showToast(result.message, 'success');
                 closeModals();
                 loadMovies(); // Znovu načíst seznam filmů
             } else {
-                throw new Error(result.message);
+                showToast(result.message, 'error');
             }
         } catch (error) {
             console.error('Chyba při mazání filmu:', error);
-            alert(`Chyba při mazání filmu: ${error.message}`);
+            showToast(`Chyba při mazání filmu: ${error.message}`, 'error');
             closeModals(); // Zavřít modal i při chybě
         }
     }
@@ -3309,43 +3516,63 @@ document.addEventListener('DOMContentLoaded', function() {
             <div>Nahrát obrázek</div>
         `;
         document.getElementById('movie-datetime').value = ''; // Reset datetime pole
-
-        // Reset časů - odstraněno
     }
 
     // Pomocná funkce pro formátování data a času
-    function formatDateTime(dateTimeStr) {
-        if (!dateTimeStr) return 'N/A';
+    function formatDateTime(dateStr, timeStr) {
+        if (!dateStr) return 'N/A';
+        
         try {
-            const date = new Date(dateTimeStr);
-            // Ověření platnosti data
-            if (isNaN(date.getTime())) {
-                // Pokud je formát nekompatibilní s new Date(), zkusíme parsovat manuálně
-                // Očekáváme formát YYYY-MM-DD HH:MM:SS nebo YYYY-MM-DDTHH:MM
-                const parts = dateTimeStr.split(/[\sT]/);
-                if (parts.length >= 2) {
-                    const dateParts = parts[0].split('-');
-                    const timeParts = parts[1].split(':');
-                    if (dateParts.length === 3 && timeParts.length >= 2) {
-                         // Sestavení data pro český formát
-                         return `${parseInt(dateParts[2])}.${parseInt(dateParts[1])}.${dateParts[0]} ${timeParts[0]}:${timeParts[1]}`;
+            const date = new Date(dateStr);
+            
+            // Pokud máme i čas, přidáme ho
+            let timeFormatted = '';
+            if (timeStr) {
+                // Pokud je time JSON string, zpracujeme ho
+                try {
+                    const parsedTime = JSON.parse(timeStr);
+                    if (Array.isArray(parsedTime) && parsedTime.length > 0) {
+                        timeFormatted = ' ' + parsedTime[0].substring(0, 5); // HH:MM
+                    } else {
+                        timeFormatted = ' ' + timeStr.substring(0, 5); // HH:MM
                     }
+                } catch (e) {
+                    // Pokud nejde o JSON, použijeme přímo
+                    timeFormatted = ' ' + timeStr.substring(0, 5); // HH:MM
                 }
-                return dateTimeStr; // Fallback na původní string, pokud parsování selže
             }
-            // Použití Intl pro lokalizovaný formát
-            const options = {
-                year: 'numeric', month: 'numeric', day: 'numeric',
-                hour: '2-digit', minute: '2-digit'
-            };
-            return new Intl.DateTimeFormat('cs-CZ', options).format(date);
+            
+            // Použití Intl pro lokalizovaný formát data
+            const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            return new Intl.DateTimeFormat('cs-CZ', options).format(date) + timeFormatted;
         } catch (e) {
-            console.error("Chyba formátování data:", dateTimeStr, e);
-            return dateTimeStr; // Vrať původní string v případě chyby
+            console.error("Chyba formátování data:", e);
+            return dateStr; // Vrať původní string v případě chyby
         }
     }
 
-    // Init - odstraněno volání addTimeInput
+    // Helper funkce
+    function closeModals() {
+        movieModal.classList.remove('active');
+        deleteModal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function resetForm() {
+        movieForm.reset();
+        movieIdInput.value = ''; // Vyčistit ID
+        modalTitle.textContent = 'Přidat nový film'; // Resetovat nadpis
+        genreTags.innerHTML = '';
+        imageUpload.innerHTML = `
+            <div class="upload-icon">📷</div>
+            <div>Nahrát obrázek</div>
+        `;
+        document.getElementById('movie-datetime').value = ''; // Reset datetime pole
+    }
+    
+    function showToast(message, type = 'success', duration = 3000) {
+        window.showToast(message, type, duration);
+    }
 
     // --- Funkce pro úpravu filmu ---
     function editMovie(movieData) {
@@ -3357,35 +3584,31 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('movie-title').value = movieData.title || '';
         document.getElementById('movie-duration').value = movieData.duration || '';
         document.getElementById('movie-description').value = movieData.description || '';
+        
         // Vyplnit datum a čas - potřebujeme formát YYYY-MM-DDTHH:MM
-        if (movieData.screening_datetime) {
-             try {
-                 const date = new Date(movieData.screening_datetime);
-                 if (!isNaN(date.getTime())) {
-                     // Formátování pro datetime-local input (YYYY-MM-DDTHH:MM)
-                     const year = date.getFullYear();
-                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                     const day = date.getDate().toString().padStart(2, '0');
-                     const hours = date.getHours().toString().padStart(2, '0');
-                     const minutes = date.getMinutes().toString().padStart(2, '0');
-                     document.getElementById('movie-datetime').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-                 } else {
-                     // Pokud new Date() selže, zkusíme zachovat původní hodnotu, pokud je v očekávaném formátu
-                     if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(movieData.screening_datetime)) {
-                         document.getElementById('movie-datetime').value = movieData.screening_datetime;
-                     } else {
-                         console.warn("Nepodařilo se převést screening_datetime do formátu YYYY-MM-DDTHH:MM:", movieData.screening_datetime);
-                         document.getElementById('movie-datetime').value = ''; // Resetovat, pokud formát není správný
-                     }
-                 }
-             } catch (e) {
-                 console.error("Chyba při nastavování data a času pro úpravu:", e);
-                 document.getElementById('movie-datetime').value = '';
-             }
+        if (movieData.screening_date) {
+            try {
+                let timeStr = movieData.screening_time || '00:00:00';
+                // Pokud je čas JSON string s polem, extrahujeme první čas
+                try {
+                    const parsedTime = JSON.parse(timeStr);
+                    if (Array.isArray(parsedTime) && parsedTime.length > 0) {
+                        timeStr = parsedTime[0];
+                    }
+                } catch (e) {
+                    // Pokud nejde o JSON, použijeme přímo
+                }
+                
+                // Formátování pro datetime-local input (YYYY-MM-DDTHH:MM)
+                const dateTimeStr = `${movieData.screening_date}T${timeStr.substring(0, 5)}`;
+                document.getElementById('movie-datetime').value = dateTimeStr;
+            } catch (e) {
+                console.error("Chyba při nastavování data a času pro úpravu:", e);
+                document.getElementById('movie-datetime').value = '';
+            }
         } else {
-             document.getElementById('movie-datetime').value = '';
+            document.getElementById('movie-datetime').value = '';
         }
-
 
         // Vyplnit žánry
         genreTags.innerHTML = ''; // Nejprve vyčistit tagy
@@ -3393,8 +3616,6 @@ document.addEventListener('DOMContentLoaded', function() {
             movieData.genre.split(',').forEach(g => addGenreTag(g.trim()));
         }
         document.getElementById('movie-genre').value = ''; // Vyčistit input pro žánr
-
-        // Časy - odstraněno
 
         // Zobrazit náhled obrázku, pokud existuje
         if (movieData.image) {
@@ -3405,7 +3626,6 @@ document.addEventListener('DOMContentLoaded', function() {
         movieModal.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
-
 });
 // File: ./js/common.js
 document.addEventListener('DOMContentLoaded', function() {
@@ -3560,52 +3780,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Error message helper function
     function showError(form, message) {
-        showMessage(form, message, 'error-message');
+        showToast(message, 'error');
     }
 
     // Success message helper function
     function showSuccess(form, message) {
-        showMessage(form, message, 'success-message');
+        showToast(message, 'success');
     }
 
-    // Generic message helper function
-    function showMessage(form, message, className) {
-        // Check if message element already exists
-        let messageElement = form.querySelector('.' + className);
-
-        // If not, create it
-        if (!messageElement) {
-            messageElement = document.createElement('div');
-            messageElement.className = className;
-            form.insertBefore(messageElement, form.firstChild);
-        }
-
-        // Set message and show
-        messageElement.textContent = message;
-        messageElement.classList.add('visible');
-
-        // Hide after 5 seconds
-        setTimeout(() => {
-            messageElement.classList.remove('visible');
-        }, 5000);
-    }
 });
 // File: ./js/main.js
 document.addEventListener('DOMContentLoaded', function() {
+            // Add pagination state variables
+            let allMovies = []; // Store all movies for pagination
+            let currentPage = 1;
+            const moviesPerPage = 8; // Adjust based on your design preference
+
             // Načtení filmů při startu
             loadMovies();
 
             // Elementy pro vyhledávání a filtrování
             const searchInput = document.getElementById('search-input');
-            const searchBtn = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn'); // Fixed selector
             const filterSelect = document.getElementById('filter-select');
             const moviesWrapper = document.getElementById('movies-wrapper');
-            const paginationBtns = document.querySelectorAll('.pagination-btn');
-            const paginationNext = document.querySelector('.pagination-next');
-
-            // User menu
-            const userIcon = document.getElementById('user-icon');
-            const dropdownMenu = document.getElementById('dropdown-menu');
+            const paginationContainer = document.querySelector('.pagination');
 
             // Event listeners pro vyhledávání a filtrování
             searchBtn.addEventListener('click', filterMovies);
@@ -3613,7 +3812,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (e.key === 'Enter') filterMovies();
             });
             filterSelect.addEventListener('change', filterMovies);
-
 
             // Načtení filmů
             async function loadMovies() {
@@ -3646,11 +3844,131 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     if (Array.isArray(movies)) {
-                        updateMoviesUI(movies);
+                        // Store all movies for pagination
+                        allMovies = movies;
+                        // Update pagination UI
+                        setupPagination();
+                        // Display first page of movies
+                        displayMoviesPage(currentPage);
                     }
                 } catch (error) {
                     console.error('Chyba při načítání filmů:', error);
                     showError('Nepodařilo se načíst filmy. Zkuste to prosím znovu.');
+                }
+            }
+
+            // Function to display a specific page of movies
+            function displayMoviesPage(page) {
+                // Calculate start and end indices
+                const startIndex = (page - 1) * moviesPerPage;
+                const endIndex = Math.min(startIndex + moviesPerPage, allMovies.length);
+
+                // Get movies for current page
+                const moviesToShow = allMovies.slice(startIndex, endIndex);
+
+                // Display these movies
+                updateMoviesUI(moviesToShow);
+
+                // Update active page button
+                updateActivePaginationButton();
+            }
+
+            // Setup pagination based on total movies
+            function setupPagination() {
+                // Calculate total pages
+                const totalPages = Math.ceil(allMovies.length / moviesPerPage);
+
+                // Clear pagination container
+                paginationContainer.innerHTML = '';
+
+                // Add page buttons
+                if (totalPages <= 5) {
+                    // Show all pages
+                    for (let i = 1; i <= totalPages; i++) {
+                        addPaginationButton(i);
+                    }
+                } else {
+                    // Show first page
+                    addPaginationButton(1);
+
+                    // Show dots or surrounding pages
+                    if (currentPage <= 3) {
+                        // Close to the beginning
+                        for (let i = 2; i <= 4; i++) {
+                            if (i <= totalPages) addPaginationButton(i);
+                        }
+                        if (totalPages > 4) {
+                            addPaginationDots();
+                            addPaginationButton(totalPages);
+                        }
+                    } else if (currentPage >= totalPages - 2) {
+                        // Close to the end
+                        addPaginationDots();
+                        for (let i = totalPages - 3; i <= totalPages; i++) {
+                            if (i > 1) addPaginationButton(i);
+                        }
+                    } else {
+                        // Middle pages
+                        addPaginationDots();
+                        addPaginationButton(currentPage - 1);
+                        addPaginationButton(currentPage);
+                        addPaginationButton(currentPage + 1);
+                        addPaginationDots();
+                        addPaginationButton(totalPages);
+                    }
+                }
+
+                // Add next button
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'pagination-next';
+                nextBtn.innerHTML = '<span>&#8594;</span>';
+                nextBtn.addEventListener('click', goToNextPage);
+                paginationContainer.appendChild(nextBtn);
+            }
+
+            // Helper function to add a pagination button
+            function addPaginationButton(pageNum) {
+                const btn = document.createElement('button');
+                btn.className = 'pagination-btn';
+                if (pageNum === currentPage) {
+                    btn.classList.add('active');
+                }
+                btn.textContent = pageNum;
+                btn.addEventListener('click', function() {
+                    currentPage = pageNum;
+                    displayMoviesPage(currentPage);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                paginationContainer.appendChild(btn);
+            }
+
+            // Helper function to add pagination dots
+            function addPaginationDots() {
+                const dots = document.createElement('span');
+                dots.className = 'pagination-dots';
+                dots.textContent = '...';
+                paginationContainer.appendChild(dots);
+            }
+
+            // Update the active pagination button
+            function updateActivePaginationButton() {
+                const buttons = paginationContainer.querySelectorAll('.pagination-btn');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === currentPage) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+
+            // Go to next page
+            function goToNextPage() {
+                const totalPages = Math.ceil(allMovies.length / moviesPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    displayMoviesPage(currentPage);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             }
 
@@ -3680,6 +3998,72 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 setupMobileCardClicks();
                 setupTooltips();
+            }
+
+            // Filtrování filmů
+            function filterMovies() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const filterValue = filterSelect.value;
+
+                // Filter the allMovies array
+                const filteredMovies = allMovies.filter(movie => {
+                    const title = movie.title.toLowerCase();
+                    const genre = movie.genre.toLowerCase();
+
+                    // Convert screening_date and screening_time to Date object
+                    const screeningDateTime = new Date(movie.screening_date + 'T' + movie.screening_time);
+                    const now = new Date();
+                    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+                    const isPast = screeningDateTime < now;
+                    const isUpcoming = screeningDateTime > sevenDaysFromNow;
+
+                    let matchesFilter = true;
+                    switch (filterValue) {
+                        case 'upcoming':
+                            matchesFilter = isUpcoming;
+                            break;
+                        case 'now':
+                            matchesFilter = !isPast && !isUpcoming;
+                            break;
+                        case 'past':
+                            matchesFilter = isPast;
+                            break;
+                    }
+
+                    const matchesSearch = title.includes(searchTerm) || genre.includes(searchTerm);
+                    return matchesSearch && matchesFilter;
+                });
+
+                // Update the UI with filtered results
+                if (filteredMovies.length === 0) {
+                    handleNoResults(0);
+                } else {
+                    // Reset to first page whenever filters change
+                    currentPage = 1;
+                    // Update pagination based on new filtered array
+                    allMovies = filteredMovies;
+                    setupPagination();
+                    // Display first page
+                    displayMoviesPage(currentPage);
+                }
+            }
+
+            // Zobrazení/skrytí zprávy o nenalezených filmech
+            function handleNoResults(visibleCount) {
+                const noResultsDiv = document.getElementById('no-results');
+                if (visibleCount === 0) {
+                    noResultsDiv.style.display = 'flex'; // Použít existující div
+                    moviesWrapper.style.display = 'none'; // Skrýt wrapper, pokud nejsou výsledky
+                } else {
+                    noResultsDiv.style.display = 'none';
+                    moviesWrapper.style.display = ''; // Zobrazit wrapper (bude grid nebo flex podle CSS)
+                }
+            }
+
+            // Helper function to show error
+            function showError(message) {
+                alert(message); // Simple error display, you could enhance this
             }
 
             // Vytvoření karty filmu
@@ -3728,55 +4112,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return card;
     }
 
-    // Filtrování filmů
-    function filterMovies() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const filterValue = filterSelect.value;
-        const cards = document.querySelectorAll('.movie-card');
-
-        let visibleCount = 0;
-        cards.forEach(card => {
-            const title = card.querySelector('.movie-title').textContent.toLowerCase();
-            const genre = card.querySelector('.movie-genre').textContent.toLowerCase();
-            const isPast = card.classList.contains('past');
-            const isUpcoming = card.classList.contains('upcoming');
-
-            let matchesFilter = true;
-            switch (filterValue) {
-                case 'upcoming':
-                    matchesFilter = isUpcoming;
-                    break;
-                case 'now':
-                    matchesFilter = !isPast && !isUpcoming;
-                    break;
-                case 'past':
-                    matchesFilter = isPast;
-                    break;
-            }
-
-            const matchesSearch = title.includes(searchTerm) || genre.includes(searchTerm);
-            const shouldShow = matchesSearch && matchesFilter;
-            
-            card.style.display = shouldShow ? '' : 'none';
-            if (shouldShow) visibleCount++;
-        });
-
-        // Zobrazení zprávy, pokud nejsou nalezeny žádné filmy
-        handleNoResults(visibleCount);
-    }
-
-    // Zobrazení/skrytí zprávy o nenalezených filmech
-    function handleNoResults(visibleCount) {
-        const noResultsDiv = document.getElementById('no-results');
-        if (visibleCount === 0) {
-            noResultsDiv.style.display = 'flex'; // Použít existující div
-            moviesWrapper.style.display = 'none'; // Skrýt wrapper, pokud nejsou výsledky
-        } else {
-            noResultsDiv.style.display = 'none';
-            moviesWrapper.style.display = ''; // Zobrazit wrapper (bude grid nebo flex podle CSS)
-        }
-    }
-
     // Nastavení klikání na karty na mobilních zařízeních
     function setupMobileCardClicks() {
         if (window.innerWidth < 768) {
@@ -3796,25 +4131,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Pagination
-    paginationBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            paginationBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Tooltip pro dlouhé názvy
+    function setupTooltips() {
+        const movieTitles = document.querySelectorAll('.movie-title');
+        movieTitles.forEach(title => {
+            if (title.scrollHeight > title.clientHeight) {
+                title.setAttribute('title', title.textContent);
+            }
         });
-    });
+    }
 
-    paginationNext.addEventListener('click', function() {
-        const activeBtn = document.querySelector('.pagination-btn.active');
-        const nextBtn = activeBtn.nextElementSibling;
-        
-        if (nextBtn && nextBtn.classList.contains('pagination-btn')) {
-            nextBtn.click();
-        }
-    });
-
-    // Helper funkce
+    // Helper functions from original code
     function formatTimes(timeStr) {
         try {
             const times = JSON.parse(timeStr);
@@ -3843,29 +4170,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${date.toLocaleDateString('cs-CZ')} - ${endDate.toLocaleDateString('cs-CZ')}`;
     }
 
-    // Tooltip pro dlouhé názvy
-    function setupTooltips() {
-        const movieTitles = document.querySelectorAll('.movie-title');
-        movieTitles.forEach(title => {
-            if (title.scrollHeight > title.clientHeight) {
-                title.setAttribute('title', title.textContent);
-            }
-        });
-    }
-
     // Event listener pro změnu velikosti okna
     window.addEventListener('resize', function() {
         setupMobileCardClicks();
         setupTooltips();
     });
-
-    // Event listener pro změnu velikosti okna
-    window.addEventListener('resize', function() {
-        setupMobileCardClicks();
-        setupTooltips(); // Aktualizace tooltipů při změně velikosti
-    });
-
-    // Inicializace tooltipů se již volá v updateMoviesUI po načtení filmů
 });
 // File: ./js/my-reservations.js
 document.addEventListener('DOMContentLoaded', function() {
@@ -4156,27 +4465,91 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 // File: ./js/reserve.js
 document.addEventListener('DOMContentLoaded', function() {
-    const seats = document.querySelectorAll('.room-container .seat:not(.sold)');
+    const seats = document.querySelectorAll('.room-container .seat');
     const reserveBtn = document.getElementById('reserve-btn');
-    const count = document.getElementById('count');
-    const total = document.getElementById('total');
     const screeningId = new URLSearchParams(window.location.search).get('id');
 
-    let selectedSeats = [];
-    let totalPrice = 0;
+    // Odstranění nebo upravení info textu
+    const selectionInfo = document.querySelector('.selection-info');
+    if (selectionInfo) {
+        selectionInfo.innerHTML = '<p>Vyberte místo, které si přejete rezervovat.</p>';
+    }
 
-    // Načtení obsazených míst při načtení stránky
-    loadOccupiedSeats();
+    let selectedSeat = null;
+    let userHasReservation = false;
+    let userReservationSeatId = null;
+
+    // Načtení dat při načtení stránky
+    init();
+
+    async function init() {
+        try {
+            // Nejdříve zkontrolujeme, zda uživatel již nemá rezervaci
+            await checkExistingReservation();
+            // Poté načteme obsazená místa
+            await loadOccupiedSeats();
+        } catch (error) {
+            console.error('Chyba při inicializaci:', error);
+            alert('Došlo k chybě při načítání. Prosím, obnovte stránku.');
+        }
+    }
+
+    // Kontrola, zda uživatel již má rezervaci na toto promítání
+    async function checkExistingReservation() {
+        try {
+            const formData = new FormData();
+            formData.append('action', 'get_user_reservation');
+            formData.append('screening_id', screeningId);
+
+            const response = await fetch('reservation_handlers.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log("Kontrola existující rezervace:", result);
+
+            if (result.found) {
+                userHasReservation = true;
+                userReservationSeatId = result.id_seat;
+
+                // Aktualizujeme text a tlačítko
+                if (selectionInfo) {
+                    selectionInfo.innerHTML = `<p>Máte rezervované sedadlo č. <strong>${result.seat_number}</strong>. Vyberte jiné místo pro přesun rezervace.</p>`;
+                }
+                if (reserveBtn) {
+                    reserveBtn.textContent = "Přesunout rezervaci";
+                }
+            } else {
+                userHasReservation = false;
+                userReservationSeatId = null;
+
+                // Aktualizujeme text a tlačítko
+                if (selectionInfo) {
+                    selectionInfo.innerHTML = '<p>Vyberte místo, které si přejete rezervovat.</p>';
+                }
+                if (reserveBtn) {
+                    reserveBtn.textContent = "Rezervovat místo";
+                }
+            }
+        } catch (error) {
+            console.error('Chyba při kontrole existující rezervace:', error);
+            throw error;
+        }
+    }
 
     // Funkce pro načtení obsazených míst
     async function loadOccupiedSeats() {
-        console.log("Načítám obsazená místa pro screening ID:", screeningId); // Log screening ID
+        console.log("Načítám obsazená místa pro screening ID:", screeningId);
         if (!screeningId) {
             console.error("Chybí screening ID v URL!");
             alert("Chyba: Chybí identifikátor promítání.");
-            // Disable all seats as we can't determine availability
             seats.forEach(seat => {
-                seat.classList.add('sold'); // Mark as sold visually
+                seat.classList.add('sold');
                 seat.style.cursor = 'not-allowed';
             });
             return;
@@ -4196,74 +4569,82 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const availableSeatsResult = await response.json();
-            console.log("Obdržená dostupná místa:", availableSeatsResult);
+            const result = await response.json();
+            console.log("Obdržená data o sedadlech:", result);
 
             // Kontrola chybové zprávy
-            if (typeof availableSeatsResult === 'object' && availableSeatsResult !== null && availableSeatsResult.status === 'error') {
-                console.error('Chyba z backendu:', availableSeatsResult.message);
+            if (typeof result === 'object' && result !== null && result.status === 'error') {
+                console.error('Chyba z backendu:', result.message);
 
-                // Speciální zpráva pro již začaté promítání
-                if (availableSeatsResult.message.includes("Promítání již začalo")) {
-                    //alert('Promítání již začalo, rezervace není možná.');
-                    // Nahradit formulář informační zprávou
+                if (result.message.includes("Promítání již začalo")) {
                     document.querySelector('.room-container').innerHTML =
                         '<div style="text-align: center; padding: 50px; background: rgba(0,0,0,0.3); border-radius: 10px;">' +
                         '<h2>Projekce skončila</h2>' +
                         '<p>Rezervace již není možná.</p>' +
                         '</div>';
-                    document.querySelector('.selection-info').style.display = 'none';
-                    document.querySelector('.button-container').style.display = 'none';
+                    if (selectionInfo) selectionInfo.style.display = 'none';
+                    if (reserveBtn) reserveBtn.style.display = 'none';
                 } else {
-                    alert('Chyba: ' + availableSeatsResult.message);
+                    alert('Chyba: ' + result.message);
                 }
 
                 disableAllSeats();
                 return;
             }
 
-            // Ensure it's an array before proceeding
-            if (!Array.isArray(availableSeatsResult)) {
-                console.error('Neočekávaná odpověď z backendu:', availableSeatsResult);
-                alert('Chyba: Server vrátil neplatná data o dostupnosti míst.');
-                // Disable all seats on unexpected data
-                seats.forEach(seat => {
-                    seat.classList.add('sold');
-                    seat.style.cursor = 'not-allowed';
-                });
-                return;
-            }
-
-            // Process the array of available seats
-            const availableSeatIds = availableSeatsResult.map(s => s.id_seat); // Get just the IDs
-            console.log("Dostupná ID míst:", availableSeatIds);
-
+            // Reset všech sedadel
             seats.forEach(seat => {
-                const seatId = parseInt(seat.id.replace('seat', ''), 10); // Ensure seatId is a number
+                // Odstraníme všechny třídy a labely
+                seat.classList.remove('sold', 'selected', 'user-reserved');
+                const usernameLabel = seat.querySelector('.username-label');
+                if (usernameLabel) usernameLabel.remove();
 
-                if (availableSeatIds.includes(seatId)) {
-                    // Seat is available
-                    seat.classList.remove('sold', 'selected'); // Ensure it's not marked sold or selected initially
-                    seat.style.cursor = 'pointer';
-                } else {
-                    // Seat is occupied or doesn't exist in 'seats' table (shouldn't happen with current query)
-                    seat.classList.add('sold');
-                    seat.classList.remove('selected'); // Ensure it's not selected
-                    seat.style.cursor = 'not-allowed';
-                }
+                // Výchozí styl pro všechna sedadla
+                seat.style.cursor = 'pointer';
             });
 
-            // Initial UI update in case all seats start occupied
+            // Označení obsazených sedadel a přidání jmen
+            if (result.occupied && Array.isArray(result.occupied)) {
+                result.occupied.forEach(occupiedSeat => {
+                    const seat = document.getElementById('seat' + occupiedSeat.id_seat);
+                    if (seat) {
+                        // Zkontrolujeme, zda toto sedadlo patří aktuálnímu uživateli
+                        const isUserSeat = userHasReservation && occupiedSeat.id_seat == userReservationSeatId;
+
+                        if (isUserSeat) {
+                            // Sedadlo patří aktuálnímu uživateli
+                            seat.classList.add('user-reserved');
+                            seat.classList.remove('sold');
+                            seat.style.cursor = 'default';
+
+                            // Přidání speciální jmenovky pro vlastní rezervaci
+                            const usernameLabel = document.createElement('div');
+                            usernameLabel.className = 'username-label user-label';
+                            usernameLabel.textContent = occupiedSeat.username;
+                            seat.insertBefore(usernameLabel, seat.firstChild);
+                        } else {
+                            // Obsazené místo jiným uživatelem
+                            seat.classList.add('sold');
+                            seat.style.cursor = 'not-allowed';
+
+                            // Přidání jmenovky s uživatelským jménem
+                            if (occupiedSeat.username) {
+                                const usernameLabel = document.createElement('div');
+                                usernameLabel.className = 'username-label';
+                                usernameLabel.textContent = occupiedSeat.username;
+                                seat.insertBefore(usernameLabel, seat.firstChild);
+                            }
+                        }
+                    }
+                });
+            }
+
             updateUI();
 
         } catch (error) {
             console.error('Chyba při fetchování/zpracování obsazených míst:', error);
             alert('Došlo k chybě při načítání dostupnosti míst. Zkuste obnovit stránku.');
-            // Disable all seats on fetch error
-            seats.forEach(seat => {
-                seat.classList.add('sold');
-                seat.style.cursor = 'not-allowed';
-            });
+            disableAllSeats();
         }
     }
 
@@ -4273,129 +4654,178 @@ document.addEventListener('DOMContentLoaded', function() {
             seat.classList.add("sold");
             seat.style.cursor = "not-allowed";
         });
-        reserveBtn.disabled = true;
+        if (reserveBtn) reserveBtn.disabled = true;
     }
 
     // Event listenery pro sedadla
     seats.forEach(seat => {
         seat.addEventListener("click", function() {
-            if (!this.classList.contains("sold")) {
-                this.classList.toggle("selected");
-
-                const seatId = this.id;
-                const seatPrice = parseInt(this.getAttribute('data-price'));
-
-                if (this.classList.contains('selected')) {
-                    selectedSeats.push(seatId);
-                    totalPrice += seatPrice;
-                } else {
-                    const index = selectedSeats.indexOf(seatId);
-                    if (index > -1) {
-                        selectedSeats.splice(index, 1);
-                        totalPrice -= seatPrice;
-                    }
-                }
-
-                updateUI();
+            // Ignorujeme kliknutí na prodaná místa a na vlastní rezervaci
+            if (this.classList.contains("sold") || this.classList.contains("user-reserved")) {
+                return;
             }
+
+            // Odznačíme předchozí vybrané sedadlo
+            if (selectedSeat) {
+                document.getElementById(selectedSeat).classList.remove('selected');
+            }
+
+            // Označíme nové sedadlo
+            this.classList.add("selected");
+            selectedSeat = this.id;
+
+            updateUI();
         });
     });
 
     // Aktualizace UI
     function updateUI() {
-        count.textContent = selectedSeats.length;
-        total.textContent = totalPrice;
-        reserveBtn.disabled = selectedSeats.length === 0;
+        // Aktivace/deaktivace tlačítka rezervace
+        if (reserveBtn) {
+            reserveBtn.disabled = !selectedSeat;
+
+            // Aktualizace textu tlačítka podle toho, zda jde o novou rezervaci nebo přesun
+            if (userHasReservation) {
+                reserveBtn.textContent = "Přesunout rezervaci";
+            } else {
+                reserveBtn.textContent = "Rezervovat místo";
+            }
+        }
     }
 
-    // Vytvoření rezervace (odeslání všech míst najednou)
-    reserveBtn.addEventListener('click', async function() {
-        if (selectedSeats.length === 0) {
-            alert('Prosím vyberte alespoň jedno místo.');
-            return;
-        }
-
-        // Deaktivovat tlačítko během zpracování
-        reserveBtn.disabled = true;
-        reserveBtn.textContent = 'Rezervuji...';
-
-        try {
-            const seatIdsOnly = selectedSeats.map(seatElementId => seatElementId.replace('seat', ''));
-
-            const formData = new FormData();
-            formData.append('action', 'create');
-            formData.append('screening_id', screeningId);
-            // Odeslat pole ID sedadel
-            seatIdsOnly.forEach(id => formData.append('seat_ids[]', id));
-
-            const response = await fetch('reservation_handlers.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const result = await response.json();
-
-            if (result.status === 'error') {
-                throw new Error(result.message);
+    // Vytvoření rezervace nebo přesun existující
+    if (reserveBtn) {
+        reserveBtn.addEventListener('click', async function() {
+            if (!selectedSeat) {
+                alert('Prosím vyberte místo.');
+                return;
             }
 
-            // Úspěšná rezervace
-            alert(result.message || 'Rezervace byla úspěšně vytvořena!');
+            const originalBtnText = this.textContent;
+            this.disabled = true;
+            this.textContent = userHasReservation ? 'Přesouvám...' : 'Rezervuji...';
 
-            // Označení vybraných míst jako prodaných
-            selectedSeats.forEach(seatId => {
-                const seat = document.getElementById(seatId);
-                seat.classList.remove('selected');
-                seat.classList.add('sold');
-                seat.style.cursor = 'not-allowed';
-            });
+            try {
+                const seatId = selectedSeat.replace('seat', '');
 
-            // Reset výběru
-            selectedSeats = [];
-            totalPrice = 0;
-            updateUI();
+                const formData = new FormData();
+                formData.append('action', 'create');
+                formData.append('screening_id', screeningId);
+                formData.append('seat_ids[]', seatId);
 
-            // Přesměrování na seznam rezervací po krátké pauze
-            setTimeout(() => {
-                window.location.href = 'my-reservations.php';
-            }, 500); // Krátká pauza, aby uživatel viděl změnu stavu
+                const response = await fetch('reservation_handlers.php', {
+                    method: 'POST',
+                    body: formData
+                });
 
-        } catch (error) {
-            console.error('Chyba při vytváření rezervace:', error);
-            alert(error.message || 'Došlo k chybě při vytváření rezervace.');
-            // Znovu povolit tlačítko při chybě
-            reserveBtn.disabled = false;
-            reserveBtn.textContent = 'Rezervovat místa';
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+
+                if (result.status === 'error') {
+                    throw new Error(result.message);
+                }
+
+                // Oznamujeme úspěch
+                alert(result.message || 'Rezervace byla úspěšně vytvořena!');
+
+                // Resetujeme a znovu načteme data
+                selectedSeat = null;
+
+                // Znovu inicializujeme stránku
+                await init();
+
+            } catch (error) {
+                console.error('Chyba při vytváření/přesouvání rezervace:', error);
+                alert(error.message || 'Došlo k chybě při zpracování rezervace.');
+                this.disabled = false;
+                this.textContent = originalBtnText;
+            }
+        });
+    }
+});
+// File: ./js/toast.js
+document.addEventListener('DOMContentLoaded', function() {
+    // Vytvoření kontejneru pro toast notifikace
+    const toastContainer = document.createElement('div');
+    toastContainer.className = 'toast-container';
+    document.body.appendChild(toastContainer);
+
+    // Globální funkce pro zobrazení toast notifikace
+    window.showToast = function(message, type = 'success', duration = 3000) {
+        // Vytvoření toast prvku
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+
+        // Přidání obsahu toast notifikace
+        toast.innerHTML = `
+            ${message}
+            <button class="toast-close">&times;</button>
+        `;
+
+        // Přidání toast notifikace do kontejneru
+        toastContainer.appendChild(toast);
+
+        // Přidání event listeneru pro zavírací tlačítko
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', function() {
+            removeToast(toast);
+        });
+
+        // Automatické odstranění toast notifikace po určité době
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                removeToast(toast);
+            }
+        }, duration);
+    };
+
+    // Funkce pro odstranění toast notifikace
+    function removeToast(toast) {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(120%)';
+
+        // Smazat DOM element po dokončení animace
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                toastContainer.removeChild(toast);
+            }
+        }, 400);
+    }
+
+    // Kontrola URL parametrů pro zobrazení toast notifikace
+    function checkUrlForMessages() {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (urlParams.has('toast_success')) {
+            showToast(decodeURIComponent(urlParams.get('toast_success')), 'success');
+            // Odstranění parametru z URL bez přesměrování
+            removeParam('toast_success');
         }
-    });
 
-    // UI pro přihlášeného uživatele
-    const userIcon = document.getElementById('user-icon');
-    const dropdownMenu = document.getElementById('dropdown-menu');
-    const backLink = document.getElementById('back-link');
-
-    userIcon.addEventListener('click', function(e) {
-        e.stopPropagation();
-        dropdownMenu.classList.toggle('active');
-    });
-
-    document.addEventListener('click', function() {
-        if (dropdownMenu.classList.contains('active')) {
-            dropdownMenu.classList.remove('active');
+        if (urlParams.has('toast_error')) {
+            showToast(decodeURIComponent(urlParams.get('toast_error')), 'error');
+            // Odstranění parametru z URL bez přesměrování
+            removeParam('toast_error');
         }
-    });
 
-    dropdownMenu.addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
+        if (urlParams.has('toast_info')) {
+            showToast(decodeURIComponent(urlParams.get('toast_info')), 'info');
+            // Odstranění parametru z URL bez přesměrování
+            removeParam('toast_info');
+        }
+    }
 
-    backLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        window.history.back();
-    });
+    // Funkce pro odstranění parametru z URL
+    function removeParam(param) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete(param);
+        window.history.replaceState({}, '', url);
+    }
+
+    // Kontrola URL při načtení stránky
+    checkUrlForMessages();
 });
 // File: ./login.php
 <?php
@@ -4410,20 +4840,12 @@ if ($auth->isLoggedIn()) {
 }
 
 // Check for error/success messages
-$errorMsg = '';
-$successMsg = '';
-
-if (isset($_GET['error'])) {
-    $errorMsg = htmlspecialchars($_GET['error']);
-}
-
-if (isset($_GET['success'])) {
-    $successMsg = htmlspecialchars($_GET['success']);
-}
 ?>
 <!DOCTYPE html>
 <html lang="cs">
 <head>
+    <link rel="stylesheet" href="./css/toast.css">
+    <script src="./js/toast.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Přihlášení | CineBukay</title>
@@ -4445,14 +4867,6 @@ if (isset($_GET['success'])) {
                     <button class="auth-tab" data-tab="register">Registrace</button>
                 </div>
             </div>
-
-            <?php if ($errorMsg): ?>
-            <div class="error-message visible"><?php echo $errorMsg; ?></div>
-            <?php endif; ?>
-            
-            <?php if ($successMsg): ?>
-            <div class="success-message visible"><?php echo $successMsg; ?></div>
-            <?php endif; ?>
 
             <div class="auth-form-container">
                 <!-- Login Form -->
@@ -4509,6 +4923,17 @@ if (isset($_GET['success'])) {
     
     <script src="./js/login.js"></script>
     <script src="./js/common.js"></script>
+<?php
+// Kontrola toast zprávy ze session
+$toastMessage = getToastMessage();
+if ($toastMessage): 
+?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        showToast('<?php echo addslashes($toastMessage['message']); ?>', '<?php echo $toastMessage['type']; ?>');
+    });
+</script>
+<?php endif; ?>
 </body>
 </html>
 
@@ -4526,6 +4951,8 @@ $currentUser = $auth->getCurrentUser();
 <!DOCTYPE html>
 <html lang="cs">
 <head>
+    <link rel="stylesheet" href="./css/toast.css">
+    <script src="./js/toast.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moje rezervace | CineBukay</title>
@@ -4600,6 +5027,17 @@ $currentUser = $auth->getCurrentUser();
 
     <script src="./js/my-reservations.js"></script>
     <script src="./js/common.js"></script>
+<?php
+// Kontrola toast zprávy ze session
+$toastMessage = getToastMessage();
+if ($toastMessage): 
+?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        showToast('<?php echo addslashes($toastMessage['message']); ?>', '<?php echo $toastMessage['type']; ?>');
+    });
+</script>
+<?php endif; ?>
 </body>
 </html>
 
@@ -4671,8 +5109,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $response = ['status' => 'error', 'message' => 'Chybí ID promítání pro načtení míst.'];
                 }
                 break;
-            
-             default:
+            case 'get_user_reservation':
+                if (isset($_POST['screening_id'])) {
+                    $screeningId = $_POST['screening_id'];
+                    $response = $reservationService->getUserReservationForScreening($screeningId);
+                    // Pokud není nalezena žádná rezervace, vrátíme prázdný objekt, ne null
+                    if ($response === null) {
+                        $response = ['found' => false];
+                    } else {
+                        $response['found'] = true;
+                    }
+                } else {
+                    $response = ['status' => 'error', 'message' => 'Chybí ID promítání.'];
+                }
+                break;
+            default:
                 $response = ['status' => 'error', 'message' => 'Neznámá akce.'];
                 break;
         }
@@ -4730,12 +5181,33 @@ function getReservations($userId = null) {
 <html lang="cs">
 
 <head>
+    <link rel="stylesheet" href="./css/toast.css">
+    <script src="./js/toast.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rezervační Systém</title>
     <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/vestylu.css">
-
+    <style>
+        /* Zajištění správného umístění jmenovek v rámci kontejnerů */
+        .couch-horizontal .seat,
+        .couch-vertical .seat,
+        .chair-top-right .seat,
+        .chair-middle-left .seat,
+        .chair-middle-top .seat {
+            position: relative;
+            overflow: visible; /* Důležité pro zobrazení jmenovky, která vystupuje mimo */
+        }
+        
+        /* Zajištění, že kontejnery nepřekrývají jmenovky */
+        .couch-horizontal,
+        .couch-vertical,
+        .chair-top-right,
+        .chair-middle-left,
+        .chair-middle-top {
+            overflow: visible;
+        }
+    </style>
 </head>
 
 <body>
@@ -4805,9 +5277,9 @@ function getReservations($userId = null) {
         </div>
     </div>
 
-    <div class="selection-info">
-        <p>Vybrali jste <span id="count">0</span> míst za cenu <span class="price" id="total">0</span> Kč</p>
-    </div>
+<div class="selection-info">
+    <p>Vyberte místo, které si přejete rezervovat.</p>
+</div>
 
     <div class="button-container">
         <button class="reserve-btn" id="reserve-btn" disabled>Rezervovat místa</button>
@@ -4815,11 +5287,51 @@ function getReservations($userId = null) {
 
     <script src="./js/reserve.js"></script>
     <script src="./js/common.js"></script>
+<?php
+// Kontrola toast zprávy ze session
+$toastMessage = getToastMessage();
+if ($toastMessage): 
+?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        showToast('<?php echo addslashes($toastMessage['message']); ?>', '<?php echo $toastMessage['type']; ?>');
+    });
+</script>
+<?php endif; ?>
 </body>
 
 </html>
 
 // File: ./session_check.php
+<?php
+// Do souboru session_check.php přidejte následující funkce
+function setToastMessage($message, $type = 'success') {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $_SESSION['toast_message'] = $message;
+    $_SESSION['toast_type'] = $type;
+}
+
+function getToastMessage() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    
+    if (isset($_SESSION['toast_message']) && isset($_SESSION['toast_type'])) {
+        $message = $_SESSION['toast_message'];
+        $type = $_SESSION['toast_type'];
+        
+        // Odstraníme zprávu ze session
+        unset($_SESSION['toast_message']);
+        unset($_SESSION['toast_type']);
+        
+        return ['message' => $message, 'type' => $type];
+    }
+    
+    return null;
+}
+?>
 <?php
 // File: session_check.php
 // Provides helper functions related to authentication state using the Auth class.
@@ -4949,7 +5461,7 @@ class Auth {
             return [
                 'status' => 'success',
                 'message' => 'Přihlášení úspěšné.',
-                'redirect' => $user['is_admin'] ? 'admin.php' : 'index.php'
+                  'redirect' => 'index.php' 
             ];
         } catch (PDOException $e) {
             error_log("Auth Error (loginUser): " . $e->getMessage());
@@ -5219,7 +5731,7 @@ class Reservation {
      * @return array List of available seats or error message.
      */
     public function getAvailableSeats($screeningId) {
-         try {
+        try {
             $this->auth->requireLogin(); // Require login for this action
 
             $pdo = Database::getConnection();
@@ -5244,16 +5756,38 @@ class Reservation {
                 return (object) ['status' => 'error', 'message' => 'Promítání již začalo.'];
             }
 
-            // If screening is valid and has not started, proceed to fetch available seats
+            // Získáme data o všech sedadlech, včetně informací o rezervacích a uživatelích
             $sql = "
-                SELECT s.id_seat
+                SELECT s.id_seat, s.seat_number, r.id_reservation, u.username
                 FROM seats s
                 LEFT JOIN reservations r ON s.id_seat = r.id_seat AND r.id_screening = :screening_id AND r.status = 'active'
-                WHERE r.id_seat IS NULL
+                LEFT JOIN users u ON r.id_user = u.id_user
+                ORDER BY s.id_seat ASC
             ";
             $stmt = $pdo->prepare($sql);
             $stmt->execute(['screening_id' => $screeningId]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $allSeats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Rozdělíme sedadla na dostupná a obsazená
+            $availableSeats = [];
+            $occupiedSeats = [];
+            
+            foreach ($allSeats as $seat) {
+                if ($seat['id_reservation'] === null) {
+                    $availableSeats[] = ['id_seat' => $seat['id_seat'], 'seat_number' => $seat['seat_number']];
+                } else {
+                    $occupiedSeats[] = [
+                        'id_seat' => $seat['id_seat'], 
+                        'seat_number' => $seat['seat_number'],
+                        'username' => $seat['username']
+                    ];
+                }
+            }
+            
+            return [
+                'available' => $availableSeats,
+                'occupied' => $occupiedSeats
+            ];
 
         } catch (PDOException $e) {
             error_log("Reservation::getAvailableSeats - DB error: " . $e->getMessage());
@@ -5316,7 +5850,9 @@ class Reservation {
             return ['status' => 'error', 'message' => 'Chyba při vytváření rezervace.'];
         }
     }
-    
+
+    // Úprava metody createMultipleReservations - přidání podpory pro přesouvání rezervace
+
     /**
      * Create multiple reservations for the logged-in user in a single transaction.
      * @param int $screeningId
@@ -5328,53 +5864,85 @@ class Reservation {
             return ['status' => 'error', 'message' => 'Pro vytvoření rezervace musíte být přihlášeni.'];
         }
         if (empty($seatIds)) {
-             return ['status' => 'error', 'message' => 'Nebyla vybrána žádná místa k rezervaci.'];
+            return ['status' => 'error', 'message' => 'Nebylo vybráno žádné místo k rezervaci.'];
         }
+        
+        // Omezíme počet míst na 1
+        if (count($seatIds) > 1) {
+            return ['status' => 'error', 'message' => 'Můžete rezervovat pouze jedno místo najednou.'];
+        }
+        
         $userId = $_SESSION['user_id'];
+        $seatId = $seatIds[0]; // Bereme pouze první (a jediné) sedadlo
 
         try {
             $this->pdo->beginTransaction();
-
-            // Check availability of all seats first
-            $placeholders = implode(',', array_fill(0, count($seatIds), '?'));
+            
+            // Nejdříve zkontrolujeme, zda uživatel již nemá rezervaci na toto promítání
+            $existingReservation = $this->getUserReservationForScreening($screeningId);
+            
+            // Kontrola dostupnosti sedadla
             $stmtCheck = $this->pdo->prepare("
                 SELECT id_seat 
                 FROM reservations 
                 WHERE id_screening = ? 
-                AND id_seat IN ($placeholders)
+                AND id_seat = ?
                 AND status = 'active'
             ");
-            $paramsCheck = array_merge([$screeningId], $seatIds);
-            $stmtCheck->execute($paramsCheck);
-            $occupiedSeats = $stmtCheck->fetchAll(PDO::FETCH_COLUMN);
-
-            if (!empty($occupiedSeats)) {
+            $stmtCheck->execute([$screeningId, $seatId]);
+            
+            if ($stmtCheck->rowCount() > 0) {
                 $this->pdo->rollBack();
-                return ['status' => 'error', 'message' => 'Některá vybraná místa jsou již obsazená: ' . implode(', ', $occupiedSeats)];
+                return ['status' => 'error', 'message' => 'Vybrané místo je již obsazené.'];
             }
 
-            // Insert all reservations
+            // Pokud existuje předchozí rezervace, zrušíme ji
+            if ($existingReservation) {
+                $stmtCancel = $this->pdo->prepare("
+                    UPDATE reservations 
+                    SET status = 'canceled' 
+                    WHERE id_reservation = ?
+                ");
+                if (!$stmtCancel->execute([$existingReservation['id_reservation']])) {
+                    $this->pdo->rollBack();
+                    return ['status' => 'error', 'message' => 'Nepodařilo se aktualizovat předchozí rezervaci.'];
+                }
+            }
+
+            // Vytvoření nové rezervace
             $stmtInsert = $this->pdo->prepare("
                 INSERT INTO reservations (id_user, id_screening, id_seat, status)
                 VALUES (?, ?, ?, 'active')
             ");
 
-            foreach ($seatIds as $seatId) {
-                if (!$stmtInsert->execute([$userId, $screeningId, $seatId])) {
-                     // If any insert fails, rollback
-                     $this->pdo->rollBack();
-                     error_log("Reservation Error (createMultipleReservations): Failed to insert seat ID " . $seatId);
-                     return ['status' => 'error', 'message' => 'Chyba při vytváření rezervace pro místo ' . $seatId];
-                }
+            if (!$stmtInsert->execute([$userId, $screeningId, $seatId])) {
+                $this->pdo->rollBack();
+                return ['status' => 'error', 'message' => 'Chyba při vytváření rezervace.'];
             }
 
             $this->pdo->commit();
-            return ['status' => 'success', 'message' => 'Rezervace byla úspěšně vytvořena.'];
+            
+            // Zpráva se liší podle toho, zda jde o novou rezervaci nebo přesun
+            if ($existingReservation) {
+                return [
+                    'status' => 'success', 
+                    'message' => 'Vaše rezervace byla přesunuta na nové místo.',
+                    'moved' => true,
+                    'previousSeat' => $existingReservation['seat_number'],
+                    'newSeat' => $seatId
+                ];
+            } else {
+                return [
+                    'status' => 'success', 
+                    'message' => 'Místo bylo úspěšně rezervováno.',
+                    'newSeat' => $seatId
+                ];
+            }
 
         } catch (PDOException $e) {
             $this->pdo->rollBack();
             error_log("Reservation Error (createMultipleReservations): " . $e->getMessage());
-            return ['status' => 'error', 'message' => 'Chyba při vytváření rezervací.'];
+            return ['status' => 'error', 'message' => 'Chyba při vytváření rezervace.'];
         }
     }
 
@@ -5418,6 +5986,34 @@ class Reservation {
         } catch (PDOException $e) {
             error_log("Reservation Error (cancelReservation): " . $e->getMessage());
             return ['status' => 'error', 'message' => 'Chyba při rušení rezervace.'];
+        }
+    }
+
+    public function getUserReservationForScreening($screeningId) {
+        if (!$this->auth->isLoggedIn()) {
+            return null;
+        }
+        
+        $userId = $_SESSION['user_id'];
+        
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT r.id_reservation, r.id_seat, s.seat_number 
+                FROM reservations r
+                JOIN seats s ON r.id_seat = s.id_seat
+                WHERE r.id_screening = :screeningId 
+                AND r.id_user = :userId 
+                AND r.status = 'active'
+            ");
+            $stmt->execute([
+                'screeningId' => $screeningId,
+                'userId' => $userId
+            ]);
+            
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Reservation Error (getUserReservationForScreening): " . $e->getMessage());
+            return null;
         }
     }
 }
