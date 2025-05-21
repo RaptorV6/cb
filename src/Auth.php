@@ -202,7 +202,7 @@ class Auth {
 
             $html = '<div class="user-menu-container">';
             $html .= '<div class="user-icon" id="user-icon">';
-            $html .= '<span class="user-icon-symbol">👤</span>';
+            $html .= '<span class="user-icon-symbol">💀</span>';
             $html .= '<span class="user-name">' . $username . '</span>';
             $html .= '</div>';
             $html .= '<div class="dropdown-menu" id="dropdown-menu">';
