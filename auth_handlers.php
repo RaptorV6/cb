@@ -12,6 +12,11 @@ $auth = new Auth();
 
 // Handle AJAX POST requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if (!isset($_POST['csrf_token']) || !verifyCsrfToken($_POST['csrf_token'])) {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'error', 'message' => 'Neplatný CSRF token.']);
+        exit;
+    }
     $action = $_POST['action'];
     $response = ['status' => 'error', 'message' => 'Neplatná akce.']; // Default error response
 

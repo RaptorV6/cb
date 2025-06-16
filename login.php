@@ -44,6 +44,7 @@ if ($auth->isLoggedIn()) {
             <div class="auth-form-container">
                 <!-- Login Form -->
                 <form id="login-form" class="auth-form active">
+                    <input type="hidden" name="csrf_token" value="<?php echo getCsrfToken(); ?>">
                     <div class="form-group">
                         <label for="login-username">Přezdívka</label>
                         <input type="text" id="login-username" name="username" required>
@@ -66,6 +67,7 @@ if ($auth->isLoggedIn()) {
 
                 <!-- Register Form -->
                 <form id="register-form" class="auth-form">
+                    <input type="hidden" name="csrf_token" value="<?php echo getCsrfToken(); ?>">
                     <div class="form-group">
                         <label for="register-username">Přezdívka</label>
                         <input type="text" id="register-username" name="username" required>

@@ -22,6 +22,7 @@ $currentUser = $auth->getCurrentUser();
     <link rel="stylesheet" href="./css/my-reservations.css">
 </head>
 <body>
+    <input type="hidden" id="csrf_token" value="<?php echo getCsrfToken(); ?>">
     <header class="site-header">
         <div class="back-button">
             <a href="index.php" id="back-link">

@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('action', 'login');
         formData.append('username', username);
         formData.append('password', password);
+        const csrfToken = loginForm.querySelector('input[name="csrf_token"]').value;
+        formData.append('csrf_token', csrfToken);
         //formData.append('remember', rememberMe);
 
         fetch('auth_handlers.php', {
@@ -100,6 +102,8 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('action', 'register');
         formData.append('username', username);
         formData.append('password', password);
+        const csrfTokenReg = registerForm.querySelector('input[name="csrf_token"]').value;
+        formData.append('csrf_token', csrfTokenReg);
 
         fetch('auth_handlers.php', {
                 method: 'POST',

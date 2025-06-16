@@ -16,6 +16,10 @@ header('Content-Type: application/json');
 
 // Handle POST requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf_token']) || !verifyCsrfToken($_POST['csrf_token'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Neplatný CSRF token.']);
+        exit;
+    }
     // All POST actions require login (checked within Reservation methods or requireLogin below)
     // requireLogin(); // Can be called here, or rely on checks within methods
 

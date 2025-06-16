@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+            const csrfToken = document.getElementById('csrf_token') ? document.getElementById('csrf_token').value : '';
             // Načtení rezervací při startu
             loadReservations();
 
@@ -234,6 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append('action', 'cancel');
             formData.append('reservation_id', reservationId);
+            formData.append('csrf_token', csrfToken);
 
             const response = await fetch('reservation_handlers.php', {
                 method: 'POST',

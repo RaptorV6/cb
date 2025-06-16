@@ -43,6 +43,7 @@ requireLogin(); // Toto automaticky přesměruje nepřihlášené uživatele na 
     require_once 'session_check.php';
     $userMenu = getUserMenuHTML(); // Získá HTML pro menu podle stavu přihlášení
     ?>
+    <input type="hidden" id="csrf_token" value="<?php echo getCsrfToken(); ?>">
 
 <header class="site-header">
     <div class="logo">

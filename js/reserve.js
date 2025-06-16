@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const seats = document.querySelectorAll('.room-container .seat');
     const reserveBtn = document.getElementById('reserve-btn');
     const screeningId = new URLSearchParams(window.location.search).get('id');
+    const csrfToken = document.getElementById('csrf_token') ? document.getElementById('csrf_token').value : '';
 
     // Odstranění nebo upravení info textu
     const selectionInfo = document.querySelector('.selection-info');
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append('action', 'get_user_reservation');
             formData.append('screening_id', screeningId);
+            formData.append('csrf_token', csrfToken);
 
             const response = await fetch('reservation_handlers.php', {
                 method: 'POST',
@@ -104,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append('action', 'get_available_seats');
             formData.append('screening_id', screeningId);
+            formData.append('csrf_token', csrfToken);
 
             const response = await fetch('reservation_handlers.php', {
                 method: 'POST',
@@ -257,6 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 formData.append('action', 'create');
                 formData.append('screening_id', screeningId);
                 formData.append('seat_ids[]', seatId);
+                formData.append('csrf_token', csrfToken);
 
                 const response = await fetch('reservation_handlers.php', {
                     method: 'POST',

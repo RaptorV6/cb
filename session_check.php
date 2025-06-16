@@ -12,22 +12,38 @@ function getToastMessage() {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    
+
     if (isset($_SESSION['toast_message']) && isset($_SESSION['toast_type'])) {
         $message = $_SESSION['toast_message'];
         $type = $_SESSION['toast_type'];
-        
+
         // Odstraníme zprávu ze session
         unset($_SESSION['toast_message']);
         unset($_SESSION['toast_type']);
-        
+
         return ['message' => $message, 'type' => $type];
     }
-    
+
     return null;
 }
-?>
-<?php
+
+function getCsrfToken() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function verifyCsrfToken($token) {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
+
 // File: session_check.php
 // Provides helper functions related to authentication state using the Auth class.
 
