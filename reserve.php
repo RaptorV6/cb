@@ -39,19 +39,8 @@ requireLogin(); // Toto automaticky přesměruje nepřihlášené uživatele na 
 
 <body>
 
-<?php
-    require_once 'session_check.php';
-    $userMenu = getUserMenuHTML(); // Získá HTML pro menu podle stavu přihlášení
-    ?>
-
-<header class="site-header">
-    <div class="logo">
-        <a href="index.php" style="text-decoration: none; color: inherit;">
-            <h1>CineBukay</h1>
-        </a>
-    </div>
-    <?php echo $userMenu; ?>
-</header>
+<?php require_once 'session_check.php'; ?>
+<?php include 'partials/header.php'; ?>
 
     <ul class="showcase">
         <li>

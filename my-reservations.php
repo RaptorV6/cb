@@ -22,24 +22,10 @@ $currentUser = $auth->getCurrentUser();
     <link rel="stylesheet" href="./css/my-reservations.css">
 </head>
 <body>
-    <header class="site-header">
-        <div class="back-button">
-            <a href="index.php" id="back-link">
-                <span class="back-arrow">&#8592;</span>
-                <span class="back-text">Zpět na program</span>
-            </a>
-        </div>
-        <div class="logo">
-            <a href="index.php" style="text-decoration: none; color: inherit;">
-                <h1>CineBukay</h1>
-            </a>
-        </div>
-        <?php
-        require_once 'session_check.php';
-        $userMenu = getUserMenuHTML();
-        echo $userMenu;
-        ?>
-    </header>
+    <?php
+    $headerExtra = '<div class="back-button"><a href="index.php" id="back-link"><span class="back-arrow">&#8592;</span><span class="back-text">Zpět na program</span></a></div>';
+    include 'partials/header.php';
+    ?>
 
     <main class="reservations-container">
         <h1 class="page-title">Moje rezervace</h1>

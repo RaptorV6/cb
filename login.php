@@ -25,11 +25,7 @@ if ($auth->isLoggedIn()) {
     <!-- Link na login.css odstraněn, styly jsou v vestylu.css -->
 </head>
 <body>
-    <header class="site-header">
-      <a href="index.php" style="text-decoration: none; color: inherit;">
-                <h1>CineBukay</h1>
-            </a>
-    </header>
+    <?php include 'partials/header.php'; ?>
 
     <div class="auth-container">
         <div class="auth-box">
