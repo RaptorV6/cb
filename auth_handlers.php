@@ -3,7 +3,7 @@
 // Handles authentication related requests (login, register, logout)
 // Delegates logic to the Auth class.
 
-require_once __DIR__ . '/src/Auth.php'; // Include the Auth class
+require_once 'autoload.php';
 require_once __DIR__ . '/db_config.php'; // Needed for Database class auto-loading config
 require_once 'session_check.php';
 

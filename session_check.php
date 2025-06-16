@@ -31,7 +31,7 @@ function getToastMessage() {
 // File: session_check.php
 // Provides helper functions related to authentication state using the Auth class.
 
-require_once __DIR__ . '/src/Auth.php'; // Include the Auth class
+require_once 'autoload.php';
 require_once __DIR__ . '/db_config.php'; // Needed for Database class auto-loading config
 
 // Global instance of Auth for convenience in procedural files

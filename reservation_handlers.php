@@ -2,8 +2,7 @@
 // File: reservation_handlers.php
 // Handles reservation related requests. Delegates logic to Reservation class.
 
-require_once __DIR__ . '/src/Reservation.php'; // Include Reservation class
-require_once __DIR__ . '/src/Auth.php';        // Auth is needed by Reservation constructor
+require_once 'autoload.php';
 require_once __DIR__ . '/db_config.php';      // Needed for Database class auto-loading config
 
 // Instantiate Auth first (starts session)

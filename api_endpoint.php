@@ -2,8 +2,8 @@
 // File: api_endpoint.php
 // Unified API endpoint for movie (screening) operations and potentially others later.
 
+require_once 'autoload.php';
 require_once 'db_config.php'; // Still needed for Database class auto-loading config
-require_once 'src/Database.php'; // Include the new Database class
 require_once 'session_check.php';
 
 header('Content-Type: application/json');
