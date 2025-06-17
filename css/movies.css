@@ -73,13 +73,56 @@
     .movie-card:hover .movie-description-overlay {
         opacity: 1;
     }
-    .movie-card.past .movie-description-overlay {
-        display: none;
+    /* OPRAVA: Overlay u skončených filmů se zobrazí, ale s jiným stylem */
+    .movie-card.past:hover .movie-description-overlay {
+        opacity: 1;
+        background-color: rgba(0, 0, 0, 0.9);
+        /* Tmavší pozadí pro skončené */
+    }
+    /* Jiný styl pro ended-label v overlay */
+    .movie-description-overlay .ended-label {
+        background-color: #666;
+        color: #ccc;
+        padding: 8px 15px;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+        width: 80%;
+        margin: 0 auto;
+        box-sizing: border-box;
     }
     /* Skryje zkrácený popis na desktopu pro úsporu místa */
     .movie-short-description {
         display: none;
     }
+}
+
+
+/* Lepší styling pro skončené filmy */
+
+.movie-card.past .movie-description-overlay {
+    background-color: rgba(0, 0, 0, 0.9);
+    /* Tmavší overlay */
+}
+
+.movie-card.past .movie-description-overlay p {
+    opacity: 0.7;
+    /* Ztlumený text popisu */
+    font-style: italic;
+}
+
+.movie-description-overlay .ended-label {
+    background-color: #555;
+    color: #ccc;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+    width: 80%;
+    margin: 0 auto;
+    display: inline-block;
+    border: 1px solid #777;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 
