@@ -272,43 +272,41 @@ public function getReservations() {
      * @param int $reservationId
      * @return array Result status and message.
      */
-    public function cancelReservation($reservationId) {
-        if (!$this->auth->isLoggedIn()) {
-            return ['status' => 'error', 'message' => 'Pro zrušení rezervace musíte být přihlášeni.'];
-        }
-        $currentUserId = $_SESSION['user_id'];
-
-        try {
-            // Get reservation owner
-            $stmt = $this->pdo->prepare("SELECT id_user FROM reservations WHERE id_reservation = :id AND status = 'active'");
-            $stmt->execute(['id' => $reservationId]);
-            $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if (!$reservation) {
-                return ['status' => 'error', 'message' => 'Rezervace neexistuje nebo již byla zrušena.'];
-            }
-
-            // Check permissions
-            if ($reservation['id_user'] !== $currentUserId && !$this->auth->isAdmin()) {
-                return ['status' => 'error', 'message' => 'Nemáte oprávnění zrušit tuto rezervaci.'];
-            }
-
-            // Cancel reservation
-      $stmt = $this->pdo->prepare("DELETE FROM reservations WHERE id_reservation = :id");
-            $stmt->execute(['id' => $reservationId]);
-
-            if ($stmt->rowCount() > 0) {
-                 return ['status' => 'success', 'message' => 'Rezervace byla úspěšně zrušena.'];
-            } else {
-                 // Should not happen if fetch worked, but good to handle
-                 return ['status' => 'error', 'message' => 'Rezervaci se nepodařilo zrušit.'];
-            }
-        } catch (PDOException $e) {
-            error_log("Reservation Error (cancelReservation): " . $e->getMessage());
-            return ['status' => 'error', 'message' => 'Chyba při rušení rezervace.'];
-        }
+ public function cancelReservation($reservationId) {
+    if (!$this->auth->isLoggedIn()) {
+        return ['status' => 'error', 'message' => 'Pro zrušení rezervace musíte být přihlášeni.'];
     }
+    $currentUserId = $_SESSION['user_id'];
 
+    try {
+        // Get reservation owner
+        $stmt = $this->pdo->prepare("SELECT id_user FROM reservations WHERE id_reservation = :id AND status = 'active'");
+        $stmt->execute(['id' => $reservationId]);
+        $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$reservation) {
+            return ['status' => 'error', 'message' => 'Rezervace neexistuje nebo již byla zrušena.'];
+        }
+
+        // Check permissions - změna z !== na != pro porovnání hodnot bez ohledu na typ
+        if ($reservation['id_user'] != $currentUserId && !$this->auth->isAdmin()) {
+            return ['status' => 'error', 'message' => 'Nemáte oprávnění zrušit tuto rezervaci.'];
+        }
+
+        // Cancel reservation
+        $stmt = $this->pdo->prepare("DELETE FROM reservations WHERE id_reservation = :id");
+        $stmt->execute(['id' => $reservationId]);
+
+        if ($stmt->rowCount() > 0) {
+             return ['status' => 'success', 'message' => 'Rezervace byla úspěšně zrušena.'];
+        } else {
+             return ['status' => 'error', 'message' => 'Rezervaci se nepodařilo zrušit.'];
+        }
+    } catch (PDOException $e) {
+        error_log("Reservation Error (cancelReservation): " . $e->getMessage());
+        return ['status' => 'error', 'message' => 'Chyba při rušení rezervace.'];
+    }
+}
     public function getUserReservationForScreening($screeningId) {
         if (!$this->auth->isLoggedIn()) {
             return null;
