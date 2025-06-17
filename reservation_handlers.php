@@ -99,7 +99,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Handle GET requests (for fetching user's reservations)
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // requireLogin(); // Checked within getReservations method
+    // Optimalizovaný endpoint pro rychlé načtení
+    if (isset($_GET['optimized']) && $_GET['optimized'] === 'true') {
+        try {
+            $response = $reservationService->getReservationsOptimized();
+        } catch (Exception $e) {
+            error_log("Reservation Handler Error (GET optimized): " . $e->getMessage());
+            $response = ['status' => 'error', 'message' => 'Došlo k systémové chybě při načítání rezervací.'];
+        }
+        echo json_encode($response);
+        exit;
+    }
+    
+    // PŮVODNÍ endpoint - zachováváme kompatibilitu
     try {
         $response = $reservationService->getReservations();
     } catch (Exception $e) {

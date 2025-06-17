@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tabContents.forEach(c => c.classList.add('hidden')); // Skrýt záložky během načítání
 
                 try {
-                    const response = await fetch('reservation_handlers.php');
+                    const response = await fetch('reservation_handlers.php?optimized=true');
                     const result = await response.json();
 
                     if (response.ok && Array.isArray(result)) {
@@ -172,7 +172,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     year: 'numeric'
                 });
 
-                // Funkce pro získání názvu místa podle čísla sedadla
                 function getSeatLabel(seatNumber) {
                     const seatNum = parseInt(seatNumber);
                     switch (seatNum) {
@@ -194,13 +193,80 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
+                // OPTIMALIZOVANÝ obrázek
+                const thumbnailHtml = reservation.image ?
+                    `<img src="data:image/jpeg;base64,${reservation.image}" alt="${reservation.movie_title || reservation.title}" class="movie-thumbnail">` :
+                    reservation.has_image ?
+                    `<img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+                            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="120" viewBox="0 0 80 120">
+                                <defs>
+                                    <linearGradient id="reserveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#242333;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#0f1419;stop-opacity:1" />
+                                    </linearGradient>
+                                    <linearGradient id="reserveShimmer" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:rgba(12,184,0,0)" />
+                                        <stop offset="50%" style="stop-color:rgba(12,184,0,0.4)" />
+                                        <stop offset="100%" style="stop-color:rgba(12,184,0,0)" />
+                                        <animateTransform attributeName="gradientTransform" type="translate"
+                                            values="-80 0; 80 0; -80 0" dur="2.5s" repeatCount="indefinite"/>
+                                    </linearGradient>
+                                    <filter id="reserveGlow">
+                                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                                    </filter>
+                                </defs>
+                                
+                                <rect width="100%" height="100%" fill="url(#reserveGrad)" rx="6"/>
+                                <rect x="5" y="5" width="70" height="110" rx="4" fill="rgba(255,255,255,0.02)" stroke="rgba(12,184,0,0.2)" stroke-width="1"/>
+                                
+                                <!-- Film reel -->
+                                <g transform="translate(40, 50)">
+                                    <circle r="18" fill="none" stroke="#0cb800" stroke-width="2" filter="url(#reserveGlow)">
+                                        <animate attributeName="stroke-dasharray" values="0 113; 56 56; 0 113" dur="2s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle r="12" fill="rgba(12, 184, 0, 0.1)"/>
+                                    <circle r="4" fill="#0cb800"/>
+                                    <circle r="2" fill="#1a1a2e"/>
+                                    
+                                    <!-- Spokes -->
+                                    <g>
+                                        <rect x="-0.5" y="-10" width="1" height="8" fill="#0cb800" opacity="0.7"/>
+                                        <rect x="-0.5" y="2" width="1" height="8" fill="#0cb800" opacity="0.7"/>
+                                        <rect x="-10" y="-0.5" width="8" height="1" fill="#0cb800" opacity="0.7"/>
+                                        <rect x="2" y="-0.5" width="8" height="1" fill="#0cb800" opacity="0.7"/>
+                                        <animateTransform attributeName="transform" type="rotate"
+                                            values="0; 360; 0" dur="3s" repeatCount="indefinite"/>
+                                    </g>
+                                </g>
+                                
+                                <text x="40" y="85" text-anchor="middle" fill="#999" font-size="9" font-weight="300">Načítám</text>
+                                
+                                <!-- Loading dots -->
+                                <g transform="translate(40, 95)">
+                                    <circle cx="-8" cy="0" r="1.5" fill="#0cb800">
+                                        <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="0" cy="0" r="1.5" fill="#0cb800">
+                                        <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="8" cy="0" r="1.5" fill="#0cb800">
+                                        <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" begin="1s" repeatCount="indefinite"/>
+                                    </circle>
+                                </g>
+                                
+                                <rect width="100%" height="100%" fill="url(#reserveShimmer)" rx="6"/>
+                                
+                                <text x="40" y="110" text-anchor="middle" fill="rgba(12, 184, 0, 0.3)" font-size="7" font-weight="bold">CineBukay</text>
+                            </svg>
+                        `)}" alt="Loading..." class="movie-thumbnail" data-movie-id="${reservation.id_screening}" style="opacity: 0.9;">` :
+                        `<div class="movie-thumbnail" style="background: #444; display: flex; align-items: center; justify-content: center; color: #888;">No Image</div>`;
+
                 card.innerHTML = `
                     <div class="reservation-header">
                         <div class="movie-thumbnail-container">
-                            ${reservation.image ? 
-                                `<img src="data:image/jpeg;base64,${reservation.image}" alt="${reservation.movie_title || reservation.title}" class="movie-thumbnail">` :
-                                `<img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="120"><rect width="100%" height="100%" fill="#666"/></svg>')}" alt="Loading..." class="movie-thumbnail" data-movie-id="${reservation.id_screening}">`
-                            }
+                            ${thumbnailHtml}
                         </div>
                         <div class="reservation-info">
                             <h3 class="movie-title">${reservation.movie_title || reservation.title}</h3>
@@ -230,18 +296,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
 
-                // Přidání event listeneru pro zrušení rezervace
+                // Event listener pro zrušení
                 const cancelBtn = card.querySelector('.cancel-btn');
                 if (cancelBtn) {
                     cancelBtn.addEventListener('click', function() {
-                        showCancelConfirmation(reservation.id_reservation, reservation.movie_title || reservation.title); 
+                        showCancelConfirmation(reservation.id_reservation, reservation.movie_title || reservation.title);
                     });
                 }
 
-                // NOVÉ: Lazy load obrázků i v my-reservations
+                // LAZY LOADING obrázku
                 if (reservation.has_image && !reservation.image) {
-                    const imgElement = card.querySelector('.movie-thumbnail');
-                    if (imgElement) loadImageLazyMyReservations(reservation.id_screening, imgElement);
+                    setTimeout(() => {
+                        loadImageLazyReservation(reservation.id_screening, card);
+                    }, 50);
                 }
 
                 return card;
@@ -348,17 +415,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // NOVÁ FUNKCE: Lazy load obrázků pro my-reservations
-    async function loadImageLazyMyReservations(movieId, imgElement) {
+    // Opravená lazy loading pro rezervace - BEZ optional chaining
+    async function loadImageLazyReservation(movieId, cardElement) {
         try {
             const response = await fetch(`api_endpoint.php?action=image&id=${movieId}`);
             const result = await response.json();
             
             if (result.status === 'success' && result.image) {
-                imgElement.src = `data:image/jpeg;base64,${result.image}`;
+                if (cardElement) {
+                    const imgElement = cardElement.querySelector('img[data-movie-id]');
+                    if (imgElement) {
+                        imgElement.src = `data:image/jpeg;base64,${result.image}`;
+                        imgElement.style.opacity = '1';
+                        imgElement.style.transition = 'opacity 0.3s ease';
+                    }
+                }
             }
         } catch (error) {
-            console.error('Chyba při načítání obrázku v my-reservations:', error);
+            console.error('Chyba při načítání obrázku v rezervacích:', error);
         }
     }
 });

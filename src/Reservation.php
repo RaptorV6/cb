@@ -13,6 +13,39 @@ class Reservation {
     }
 
     /**
+     * Get reservations optimized - without images for fast loading
+     * @return array List of reservations without images.
+     */
+    public function getReservationsOptimized() {
+        if (!$this->auth->isLoggedIn()) {
+             return ['status' => 'error', 'message' => 'Pro zobrazení rezervací musíte být přihlášeni.'];
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        try {
+            $sql = "
+                SELECT r.id_reservation, r.id_user, r.id_screening, r.id_seat, r.status, r.created_at, 
+                       s.title, s.screening_date, s.screening_time, s.genre, s.duration, 
+                       CASE WHEN s.image IS NOT NULL THEN true ELSE false END as has_image,
+                       seat.seat_number
+                FROM reservations r
+                JOIN screenings s ON r.id_screening = s.id_screening
+                JOIN seats seat ON r.id_seat = seat.id_seat
+                WHERE r.status = 'active' AND r.id_user = :userId
+                ORDER BY r.created_at DESC";
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute(['userId' => $userId]);
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Reservation Error (getReservationsOptimized): " . $e->getMessage());
+            return ['status' => 'error', 'message' => 'Chyba DB: ' . $e->getMessage()];
+        }
+    }
+
+    /**
      * Get reservations, optionally filtered by user ID.
      * If user is not admin, automatically filters by logged-in user.
      * @return array List of reservations or error message.
