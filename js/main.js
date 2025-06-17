@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             filterSelect.addEventListener('change', filterMovies);
 
-            // Načtení filmů
+            // Načtení filmů - ZMĚNIT POUZE TUTO FUNKCI
             async function loadMovies() {
                 // Zobrazit loading indikátor
                 const loadingIndicator = document.getElementById('loading');
@@ -32,22 +32,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 noResultsDiv.style.display = 'none';
 
                 try {
-                    // Použít api_endpoint.php
-                    const response = await fetch('api_endpoint.php');
+                    // ZMĚNA: Použít optimalizovaný endpoint
+                    const response = await fetch('api_endpoint.php?optimized=true');
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
+
                     const movies = await response.json();
 
                     // Skrýt loading indikátor
                     loadingIndicator.style.display = 'none';
-                    moviesWrapper.style.display = ''; // Zobrazit wrapper (bude grid nebo flex podle CSS)
+                    moviesWrapper.style.display = '';
 
                     // Zpracování odpovědi - může obsahovat 'status' => 'error'
                     if (movies.status === 'error') {
                         console.error('Chyba při načítání filmů:', movies.message);
                         showError('Nepodařilo se načíst filmy: ' + movies.message);
-                        handleNoResults(0); // Zobrazit "žádné výsledky"
+                        handleNoResults(0);
                         return;
                     }
 
@@ -270,14 +271,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert(message); // Simple error display, you could enhance this
             }
 
-            // Vytvoření karty filmu
+            // Vytvoření karty filmu - UPRAVIT POUZE TUTO FUNKCI
             function createMovieCard(movie, isPast, isUpcoming) {
                 const card = document.createElement('div');
                 card.className = `movie-card${isPast ? " past" : ""}${isUpcoming ? " upcoming" : ""}`;
 
                 const times = formatTimes(movie.screening_time);
                 const dateRange = formatDateRange(movie.screening_date, movie, isPast);
-                const imgSrc = movie.image ? `data:image/jpeg;base64,${movie.image}` : 'https://via.placeholder.com/260x390?text=No+Image';
+
+                // OPRAVA: Jednoduchý placeholder
+                let imgSrc;
+                if (movie.image) {
+                    imgSrc = `data:image/jpeg;base64,${movie.image}`;
+                } else if (movie.has_image) {
+                    imgSrc = 'https://via.placeholder.com/260x390/333333/666666?text=Loading...';
+                } else {
+                    imgSrc = 'https://via.placeholder.com/260x390?text=No+Image';
+                }
 
                 // Zkrácený popis s omezením na 100 znaků
                 const shortDescription = movie.description ?
@@ -287,104 +297,130 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Bez popisu';
 
                 card.innerHTML = `
-        <div class="movie-image">
-            <img src="${imgSrc}" alt="${movie.title}">
-            <div class="movie-description-overlay">
-                <p>${movie.description || 'Popis filmu není k dispozici.'}</p>
-                ${!isPast ? 
-                    `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 20;">Rezervovat</a>` 
-                    : 
-                    "<span class='ended-label' style='position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);'>Projekce skončila</span>"
+                    <div class="movie-image">
+                        <img src="${imgSrc}" alt="${movie.title}" data-movie-id="${movie.id_screening}">
+                        <div class="movie-description-overlay">
+                            <p>${movie.description || 'Popis filmu není k dispozici.'}</p>
+                            ${!isPast ? 
+                                `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 20;">Rezervovat</a>` 
+                                : 
+                                "<span class='ended-label' style='position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);'>Projekce skončila</span>"
+                            }
+                        </div>
+                    </div>
+                    <div class="movie-content">
+                        <h3 class="movie-title">${movie.title}</h3>
+                        <div class="movie-details">
+                            <div class="movie-meta">
+                                <span class="movie-duration">${movie.duration} min</span>
+                                <span class="movie-genre">${movie.genre}</span>
+                            </div>
+                            <div class="movie-short-description">${shortDescription}</div>
+                            <div class="movie-time">
+                                <span class="date">${dateRange}</span>
+                                ${!isUpcoming && !isPast ? `<span class="time">${times}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="mobile-reserve">
+                            ${isPast ?
+                                "<span class='ended-label'>Projekce skončila</span>" :
+                                `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
+                            }
+                        </div>
+                    </div>
+                `;
+
+                // NOVÉ: Lazy load obrázku pokud ho nemáme
+                if (movie.has_image && !movie.image) {
+                    loadImageLazy(movie.id_screening, card.querySelector('.movie-image img'));
                 }
-            </div>
-        </div>
-        <div class="movie-content">
-            <h3 class="movie-title">${movie.title}</h3>
-            <div class="movie-details">
-                <div class="movie-meta">
-                    <span class="movie-duration">${movie.duration} min</span>
-                    <span class="movie-genre">${movie.genre}</span>
-                </div>
-                <div class="movie-short-description">${shortDescription}</div>
-                <div class="movie-time">
-                    <span class="date">${dateRange}</span>
-                    ${!isUpcoming && !isPast ? `<span class="time">${times}</span>` : ''}
-                </div>
-            </div>
-            <div class="mobile-reserve">
-                ${isPast ?
-                    "<span class='ended-label'>Projekce skončila</span>" :
-                    `<a href="reserve.php?id=${movie.id_screening}" class="reserve-btn">Rezervovat</a>`
+
+                return card;
+            }
+
+            // Nastavení klikání na karty na mobilních zařízeních
+            function setupMobileCardClicks() {
+                if (window.innerWidth < 768) {
+                    const movieCards = document.querySelectorAll('.movie-card:not(.past):not(.upcoming)');
+                    
+                    movieCards.forEach(card => {
+                        const reserveBtn = card.querySelector('.mobile-reserve .reserve-btn');
+                        if (!reserveBtn || reserveBtn.classList.contains('disabled')) return;
+
+                        const reserveLink = reserveBtn.getAttribute('href');
+                        
+                        // Při kliknutí na kartu (mimo tlačítko rezervace) přejde na stránku rezervace
+                        card.addEventListener('click', function(e) {
+                            if (e.target === reserveBtn || reserveBtn.contains(e.target)) return;
+                            window.location.href = reserveLink;
+                        });
+                    });
                 }
-            </div>
-        </div>
-    `;
+            }
 
-    return card;
-}
+            // Tooltip pro dlouhé názvy
+            function setupTooltips() {
+                const movieTitles = document.querySelectorAll('.movie-title');
+                movieTitles.forEach(title => {
+                    if (title.scrollHeight > title.clientHeight) {
+                        title.setAttribute('title', title.textContent);
+                    }
+                });
+            }
 
-    // Nastavení klikání na karty na mobilních zařízeních
- function setupMobileCardClicks() {
-    if (window.innerWidth < 768) {
-        const movieCards = document.querySelectorAll('.movie-card:not(.past):not(.upcoming)');
-        
-        movieCards.forEach(card => {
-            const reserveBtn = card.querySelector('.mobile-reserve .reserve-btn');
-            if (!reserveBtn || reserveBtn.classList.contains('disabled')) return;
+            // Helper functions from original code
+            function formatTimes(timeStr) {
+                try {
+                    const times = JSON.parse(timeStr);
+                    return times.map(time => time.substring(0, 5)).join(', ');
+                } catch (e) {
+                    return timeStr.substring(0, 5);
+                }
+            }
 
-            const reserveLink = reserveBtn.getAttribute('href');
-            
-            // Při kliknutí na kartu (mimo tlačítko rezervace) přejde na stránku rezervace
-            card.addEventListener('click', function(e) {
-                if (e.target === reserveBtn || reserveBtn.contains(e.target)) return;
-                window.location.href = reserveLink;
+            function formatDateRange(dateStr, movie, isPastFilm) {
+                const date = new Date(dateStr);
+                const now = new Date();
+                
+                // Použití isPastFilm parametru namísto prosté kontroly date < now
+                if (isPastFilm) {
+                    return `Skončilo ${date.toLocaleDateString('cs-CZ')}`;
+                }
+                
+                if (date > new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)) {
+                    return `Od ${date.toLocaleDateString('cs-CZ')}`;
+                }
+
+                const endDate = new Date(date);
+                endDate.setDate(endDate.getDate());
+                
+                return `${endDate.toLocaleDateString('cs-CZ', { year: 'numeric', month: 'numeric', day: 'numeric' }).replace(/\s/g, '')}`;
+            }
+
+            // Event listener pro změnu velikosti okna
+            window.addEventListener('resize', function() {
+                setupMobileCardClicks();
+                setupTooltips();
             });
+
+            async function loadImageLazy(movieId, imgElement) {
+                try {
+                    const response = await fetch(`api_endpoint.php?action=image&id=${movieId}`);
+                    const result = await response.json();
+                    
+                    if (result.status === 'success' && result.image) {
+                        imgElement.src = `data:image/jpeg;base64,${result.image}`;
+                        // Přidat fade-in efekt
+                        imgElement.style.opacity = '0';
+                        imgElement.onload = () => {
+                            imgElement.style.transition = 'opacity 0.3s ease';
+                            imgElement.style.opacity = '1';
+                        };
+                    }
+                } catch (error) {
+                    console.error('Chyba při načítání obrázku:', error);
+                    // Zobrazit placeholder chyby
+                    imgElement.src = 'https://via.placeholder.com/260x390?text=Chyba+načítání';
+                }
+            }
         });
-    }
-}
-
-    // Tooltip pro dlouhé názvy
- function setupTooltips() {
-    const movieTitles = document.querySelectorAll('.movie-title');
-    movieTitles.forEach(title => {
-        if (title.scrollHeight > title.clientHeight) {
-            title.setAttribute('title', title.textContent);
-        }
-    });
-}
-
-    // Helper functions from original code
-    function formatTimes(timeStr) {
-        try {
-            const times = JSON.parse(timeStr);
-            return times.map(time => time.substring(0, 5)).join(', ');
-        } catch {
-            return timeStr.substring(0, 5);
-        }
-    }
-
-    function formatDateRange(dateStr, movie, isPastFilm) {
-        const date = new Date(dateStr);
-        const now = new Date();
-        
-        // Použití isPastFilm parametru namísto prosté kontroly date < now
-        if (isPastFilm) {
-            return `Skončilo ${date.toLocaleDateString('cs-CZ')}`;
-        }
-        
-        if (date > new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)) {
-            return `Od ${date.toLocaleDateString('cs-CZ')}`;
-        }
-
-        const endDate = new Date(date);
-        endDate.setDate(endDate.getDate());
-        
-        return `${endDate.toLocaleDateString('cs-CZ', { year: 'numeric', month: 'numeric', day: 'numeric' }).replace(/\s/g, '')}`;
-    }
-
-    // Event listener pro změnu velikosti okna
-    window.addEventListener('resize', function() {
-        setupMobileCardClicks();
-        setupTooltips();
-    });
-});

@@ -6,10 +6,56 @@ require_once 'db_config.php'; // Still needed for Database class auto-loading co
 require_once 'src/Database.php'; // Include the new Database class
 require_once 'session_check.php';
 
-header('Content-Type: application/json');
-
 // --- Movie (Screening) Functions ---
 
+/**
+ * Get all screenings - NOVÁ VERZE s možností vypnout obrázky
+ */
+function getAllMoviesOptimized($includeImages = false) {
+    try {
+        $pdo = Database::getConnection();
+        
+        $imageSelect = $includeImages ? 
+            "encode(image, 'base64') as image," : 
+            "CASE WHEN image IS NOT NULL THEN true ELSE false END as has_image,";
+            
+        $stmt = $pdo->query("
+            SELECT 
+                id_screening,
+                title,
+                duration,
+                genre,
+                description,
+                {$imageSelect}
+                screening_date,
+                screening_time::varchar as screening_time
+            FROM screenings 
+            ORDER BY screening_date DESC, screening_time DESC
+        ");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("API Error (getAllMoviesOptimized): " . $e->getMessage());
+        return ['status' => 'error', 'message' => 'Chyba při načítání filmů.'];
+    }
+}
+
+/**
+ * Get single movie image
+ */
+function getMovieImage($movieId) {
+    try {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("SELECT encode(image, 'base64') as image FROM screenings WHERE id_screening = :id");
+        $stmt->execute(['id' => $movieId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['image'] : null;
+    } catch (PDOException $e) {
+        error_log("API Error (getMovieImage): " . $e->getMessage());
+        return null;
+    }
+}
+
+// ZACHOVAT původní funkci pro zpětnou kompatibilitu!
 /**
  * Get all screenings from the database.
  * Includes image data encoded as base64.
@@ -37,6 +83,8 @@ function getAllMovies() {
         return ['status' => 'error', 'message' => 'Chyba při načítání filmů.'];
     }
 }
+
+header('Content-Type: application/json');
 
 /**
  * Add a new screening to the database.
@@ -255,7 +303,25 @@ function deleteMovie($id) {
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    // No authentication needed for getting movies (public view)
+    // Nový endpoint pro obrázek
+    if (isset($_GET['action']) && $_GET['action'] === 'image' && isset($_GET['id'])) {
+        $image = getMovieImage($_GET['id']);
+        if ($image) {
+            echo json_encode(['status' => 'success', 'image' => $image]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Obrázek nenalezen']);
+        }
+        exit;
+    }
+    
+    // Nový optimalizovaný endpoint
+    if (isset($_GET['optimized']) && $_GET['optimized'] === 'true') {
+        $response = getAllMoviesOptimized(false); // Bez obrázků
+        echo json_encode($response);
+        exit;
+    }
+    
+    // ZACHOVAT původní endpoint - admin a ostatní části fungují dál!
     $response = getAllMovies();
     echo json_encode($response);
     exit;
