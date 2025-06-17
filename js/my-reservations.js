@@ -195,48 +195,57 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 card.innerHTML = `
-        <div class="reservation-header">
-            <div class="movie-thumbnail-container">
-                <img src="data:image/jpeg;base64,${reservation.image}" alt="${reservation.movie_title || reservation.title}" class="movie-thumbnail">
-            </div>
-            <div class="reservation-info">
-                <h3 class="movie-title">${reservation.movie_title || reservation.title}</h3>
-                <div class="movie-details">
-                    <span class="movie-genre">${reservation.genre}</span>
-                    <span class="movie-duration">${reservation.duration} min</span>
-                </div>
-                <div class="reservation-date">
-                    <span class="date-icon">📅</span>
-                    <span>${formattedDate}</span>
-                    <span class="time-icon">🕒</span>
-                    <span>${formatTime(reservation.screening_time)}</span>
-                </div>
-            </div>
-        </div>
-        <div class="reservation-seats">
-            <h4>Rezervované místo</h4>
-            <div class="seats-grid">
-                <div class="seat">
-                    <span class="seat-number">${getSeatLabel(reservation.seat_number)}</span>
-                </div>
-            </div>
-        </div>
-        <div class="reservation-actions">
-            <a href="reserve.php?id=${reservation.id_screening}" class="view-btn">Zobrazit rezervaci</a>
-            ${!isPast ? `<button class="cancel-btn" data-id="${reservation.id_reservation}">Zrušit rezervaci</button>` : ''}
-        </div>
-    `;
+                    <div class="reservation-header">
+                        <div class="movie-thumbnail-container">
+                            ${reservation.image ? 
+                                `<img src="data:image/jpeg;base64,${reservation.image}" alt="${reservation.movie_title || reservation.title}" class="movie-thumbnail">` :
+                                `<img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="120"><rect width="100%" height="100%" fill="#666"/></svg>')}" alt="Loading..." class="movie-thumbnail" data-movie-id="${reservation.id_screening}">`
+                            }
+                        </div>
+                        <div class="reservation-info">
+                            <h3 class="movie-title">${reservation.movie_title || reservation.title}</h3>
+                            <div class="movie-details">
+                                <span class="movie-genre">${reservation.genre}</span>
+                                <span class="movie-duration">${reservation.duration} min</span>
+                            </div>
+                            <div class="reservation-date">
+                                <span class="date-icon">📅</span>
+                                <span>${formattedDate}</span>
+                                <span class="time-icon">🕒</span>
+                                <span>${formatTime(reservation.screening_time)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reservation-seats">
+                        <h4>Rezervované místo</h4>
+                        <div class="seats-grid">
+                            <div class="seat">
+                                <span class="seat-number">${getSeatLabel(reservation.seat_number)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reservation-actions">
+                        <a href="reserve.php?id=${reservation.id_screening}" class="view-btn">Zobrazit rezervaci</a>
+                        ${!isPast ? `<button class="cancel-btn" data-id="${reservation.id_reservation}">Zrušit rezervaci</button>` : ''}
+                    </div>
+                `;
 
-    // Přidání event listeneru pro zrušení rezervace
-    const cancelBtn = card.querySelector('.cancel-btn');
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', function() {
-            showCancelConfirmation(reservation.id_reservation, reservation.movie_title || reservation.title); 
-        });
-    }
+                // Přidání event listeneru pro zrušení rezervace
+                const cancelBtn = card.querySelector('.cancel-btn');
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', function() {
+                        showCancelConfirmation(reservation.id_reservation, reservation.movie_title || reservation.title); 
+                    });
+                }
 
-    return card;
-}
+                // NOVÉ: Lazy load obrázků i v my-reservations
+                if (reservation.has_image && !reservation.image) {
+                    const imgElement = card.querySelector('.movie-thumbnail');
+                    if (imgElement) loadImageLazyMyReservations(reservation.id_screening, imgElement);
+                }
+
+                return card;
+            }
 
     // Zobrazení potvrzení zrušení
     function showCancelConfirmation(reservationId, movieTitle) {
@@ -338,4 +347,18 @@ document.addEventListener('DOMContentLoaded', function() {
             closeModals();
         }
     });
+
+    // NOVÁ FUNKCE: Lazy load obrázků pro my-reservations
+    async function loadImageLazyMyReservations(movieId, imgElement) {
+        try {
+            const response = await fetch(`api_endpoint.php?action=image&id=${movieId}`);
+            const result = await response.json();
+            
+            if (result.status === 'success' && result.image) {
+                imgElement.src = `data:image/jpeg;base64,${result.image}`;
+            }
+        } catch (error) {
+            console.error('Chyba při načítání obrázku v my-reservations:', error);
+        }
+    }
 });

@@ -279,14 +279,60 @@ document.addEventListener('DOMContentLoaded', function() {
                 const times = formatTimes(movie.screening_time);
                 const dateRange = formatDateRange(movie.screening_date, movie, isPast);
 
-                // OPRAVA: Jednoduchý placeholder
                 let imgSrc;
                 if (movie.image) {
                     imgSrc = `data:image/jpeg;base64,${movie.image}`;
                 } else if (movie.has_image) {
-                    imgSrc = 'https://via.placeholder.com/260x390/333333/666666?text=Loading...';
+                    // OPRAVENÝ placeholder - filmový poster styl
+                    imgSrc = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="260" height="390" viewBox="0 0 260 390">
+            <defs>
+                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#444;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#222;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grad)"/>
+            
+            <!-- Film strip ikona -->
+            <rect x="20" y="40" width="220" height="140" rx="8" fill="#333" stroke="#555" stroke-width="2"/>
+            <circle cx="40" cy="60" r="4" fill="#666"/>
+            <circle cx="220" cy="60" r="4" fill="#666"/>
+            <circle cx="40" cy="160" r="4" fill="#666"/>
+            <circle cx="220" cy="160" r="4" fill="#666"/>
+            
+            <!-- Play ikona -->
+            <polygon points="110,110 110,150 150,130" fill="#666"/>
+            
+            <!-- Loading text -->
+            <text x="130" y="220" text-anchor="middle" fill="#999" font-family="Arial" font-size="12">Načítám...</text>
+            
+            <!-- Loading animace -->
+            <circle cx="130" cy="250" r="3" fill="#666">
+                <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="145" cy="250" r="3" fill="#666">
+                <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="160" cy="250" r="3" fill="#666">
+                <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" begin="1s" repeatCount="indefinite"/>
+            </circle>
+        </svg>
+    `);
                 } else {
-                    imgSrc = 'https://via.placeholder.com/260x390?text=No+Image';
+                    // Placeholder pro "žádný obrázek"
+                    imgSrc = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="260" height="390" viewBox="0 0 260 390">
+            <rect width="100%" height="100%" fill="#2a2a2a"/>
+            <rect x="20" y="40" width="220" height="140" rx="8" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5,5"/>
+            
+            <!-- X ikona -->
+            <line x1="80" y1="80" x2="180" y2="180" stroke="#666" stroke-width="3"/>
+            <line x1="180" y1="80" x2="80" y2="180" stroke="#666" stroke-width="3"/>
+            
+            <text x="130" y="220" text-anchor="middle" fill="#666" font-family="Arial" font-size="14">Bez obrázku</text>
+        </svg>
+    `);
                 }
 
                 // Zkrácený popis s omezením na 100 znaků
