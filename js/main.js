@@ -283,54 +283,129 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (movie.image) {
                     imgSrc = `data:image/jpeg;base64,${movie.image}`;
                 } else if (movie.has_image) {
-                    // OPRAVENÝ placeholder - filmový poster styl
+
                     imgSrc = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="260" height="390" viewBox="0 0 260 390">
             <defs>
-                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#444;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#222;stop-opacity:1" />
+                <!-- Hlavní gradient pozadí -->
+                <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+                    <stop offset="30%" style="stop-color:#242333;stop-opacity:1" />
+                    <stop offset="70%" style="stop-color:#16213e;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#0f1419;stop-opacity:1" />
                 </linearGradient>
+                
+                <!-- Zelený accent gradient -->
+                <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#0cb800;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#09a100;stop-opacity:1" />
+                </linearGradient>
+                
+                <!-- Shimmer efekt -->
+                <linearGradient id="shimmer" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+                    <stop offset="50%" style="stop-color:rgba(255,255,255,0.1);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+                    <animateTransform attributeName="gradientTransform" type="translate" 
+                        values="-260 0; 260 0; -260 0" dur="2s" repeatCount="indefinite"/>
+                </linearGradient>
+                
+                <!-- Glow efekt -->
+                <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge> 
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
             </defs>
-            <rect width="100%" height="100%" fill="url(#grad)"/>
             
-            <!-- Film strip ikona -->
-            <rect x="20" y="40" width="220" height="140" rx="8" fill="#333" stroke="#555" stroke-width="2"/>
-            <circle cx="40" cy="60" r="4" fill="#666"/>
-            <circle cx="220" cy="60" r="4" fill="#666"/>
-            <circle cx="40" cy="160" r="4" fill="#666"/>
-            <circle cx="220" cy="160" r="4" fill="#666"/>
+            <!-- Pozadí -->
+            <rect width="100%" height="100%" fill="url(#mainGrad)"/>
             
-            <!-- Play ikona -->
-            <polygon points="110,110 110,150 150,130" fill="#666"/>
+            <!-- Dekorativní elementy -->
+            <rect x="10" y="10" width="240" height="370" rx="12" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
             
-            <!-- Loading text -->
-            <text x="130" y="220" text-anchor="middle" fill="#999" font-family="Arial" font-size="12">Načítám...</text>
+            <!-- Hlavní film reel ikona -->
+            <g transform="translate(130, 150)">
+                <!-- Vnější kruh -->
+                <circle r="35" fill="none" stroke="url(#greenGrad)" stroke-width="3" filter="url(#glow)">
+                    <animate attributeName="stroke-dasharray" values="0 220; 110 110; 0 220" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                
+                <!-- Střední kruh -->
+                <circle r="25" fill="rgba(12, 184, 0, 0.1)" stroke="rgba(12, 184, 0, 0.3)" stroke-width="1"/>
+                
+                <!-- Vnitřní detaily -->
+                <circle r="8" fill="url(#greenGrad)"/>
+                <circle r="4" fill="#1a1a2e"/>
+                
+                <!-- Rotující film spokes -->
+                <g>
+                    <rect x="-1" y="-20" width="2" height="15" fill="rgba(12, 184, 0, 0.6)"/>
+                    <rect x="-1" y="5" width="2" height="15" fill="rgba(12, 184, 0, 0.6)"/>
+                    <rect x="-20" y="-1" width="15" height="2" fill="rgba(12, 184, 0, 0.6)"/>
+                    <rect x="5" y="-1" width="15" height="2" fill="rgba(12, 184, 0, 0.6)"/>
+                    <animateTransform attributeName="transform" type="rotate" 
+                        values="0; 360; 0" dur="3s" repeatCount="indefinite"/>
+                </g>
+            </g>
             
-            <!-- Loading animace -->
-            <circle cx="130" cy="250" r="3" fill="#666">
-                <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
-            </circle>
-            <circle cx="145" cy="250" r="3" fill="#666">
-                <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
-            </circle>
-            <circle cx="160" cy="250" r="3" fill="#666">
-                <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" begin="1s" repeatCount="indefinite"/>
-            </circle>
+            <!-- Elegantní loading text -->
+            <text x="130" y="220" text-anchor="middle" fill="#999" font-family="Arial, sans-serif" font-size="13" font-weight="300">
+                Načítám obrázek
+            </text>
+            
+            <!-- Moderní loading dots -->
+            <g transform="translate(130, 240)">
+                <circle cx="-12" cy="0" r="2" fill="#0cb800">
+                    <animate attributeName="opacity" values="0.3;1;0.3" dur="1.8s" repeatCount="indefinite"/>
+                    <animateTransform attributeName="transform" type="scale" 
+                        values="1;1.2;1" dur="1.8s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="0" cy="0" r="2" fill="#0cb800">
+                    <animate attributeName="opacity" values="0.3;1;0.3" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+                    <animateTransform attributeName="transform" type="scale" 
+                        values="1;1.2;1" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="12" cy="0" r="2" fill="#0cb800">
+                    <animate attributeName="opacity" values="0.3;1;0.3" dur="1.8s" begin="1.2s" repeatCount="indefinite"/>
+                    <animateTransform attributeName="transform" type="scale" 
+                        values="1;1.2;1" dur="1.8s" begin="1.2s" repeatCount="indefinite"/>
+                </circle>
+            </g>
+            
+            <!-- Subtle shimmer overlay -->
+            <rect width="100%" height="100%" fill="url(#shimmer)" opacity="0.3"/>
+            
+            <!-- Brand element - malý CineBukay accent -->
+            <text x="130" y="350" text-anchor="middle" fill="rgba(12, 184, 0, 0.4)" font-family="Arial, sans-serif" font-size="10" font-weight="bold">
+                CineBukay
+            </text>
         </svg>
     `);
                 } else {
-                    // Placeholder pro "žádný obrázek"
+                    // Elegantní "bez obrázku" placeholder
                     imgSrc = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="260" height="390" viewBox="0 0 260 390">
-            <rect width="100%" height="100%" fill="#2a2a2a"/>
-            <rect x="20" y="40" width="220" height="140" rx="8" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5,5"/>
+            <defs>
+                <linearGradient id="noImgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#2a2a2a;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+                </linearGradient>
+            </defs>
             
-            <!-- X ikona -->
-            <line x1="80" y1="80" x2="180" y2="180" stroke="#666" stroke-width="3"/>
-            <line x1="180" y1="80" x2="80" y2="180" stroke="#666" stroke-width="3"/>
+            <rect width="100%" height="100%" fill="url(#noImgGrad)"/>
+            <rect x="10" y="10" width="240" height="370" rx="12" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="8,4"/>
             
-            <text x="130" y="220" text-anchor="middle" fill="#666" font-family="Arial" font-size="14">Bez obrázku</text>
+            <!-- Crossed out camera icon -->
+            <g transform="translate(130, 160)">
+                <rect x="-25" y="-15" width="50" height="30" rx="5" fill="none" stroke="#555" stroke-width="2"/>
+                <circle cx="0" cy="0" r="10" fill="none" stroke="#555" stroke-width="2"/>
+                <line x1="-30" y1="-30" x2="30" y2="30" stroke="#666" stroke-width="3" opacity="0.7"/>
+            </g>
+            
+            <text x="130" y="220" text-anchor="middle" fill="#666" font-family="Arial" font-size="14" font-weight="300">Bez obrázku</text>
         </svg>
     `);
                 }
