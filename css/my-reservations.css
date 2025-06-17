@@ -208,10 +208,8 @@
 }
 
 .seat-number {
-    font-size: 1.8rem;
     font-weight: 700;
     color: #0cb800;
-    margin-bottom: 5px;
 }
 
 .seat-label {
@@ -495,9 +493,6 @@
 @media (max-width: 480px) {
     .movie-thumbnail-container {
         height: 140px;
-    }
-    .seat-number {
-        font-size: 1.4rem;
     }
     .modal-content {
         width: 95%;

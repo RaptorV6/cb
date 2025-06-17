@@ -158,6 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Vytvoření karty rezervace
+            // Vytvoření karty rezervace
             function createReservationCard(reservation, isPast) {
                 const card = document.createElement('div');
                 card.className = `reservation-card${isPast ? ' past' : ''}`;
@@ -171,50 +172,71 @@ document.addEventListener('DOMContentLoaded', function() {
                     year: 'numeric'
                 });
 
+                // Funkce pro získání názvu místa podle čísla sedadla
+                function getSeatLabel(seatNumber) {
+                    const seatNum = parseInt(seatNumber);
+                    switch (seatNum) {
+                        case 1:
+                            return "bobig | 1";
+                        case 2:
+                            return "židle | 2";
+                        case 3:
+                        case 4:
+                        case 5:
+                        case 6:
+                        case 7:
+                        case 8:
+                            return `gauč | ${seatNum}`;
+                        case 9:
+                            return "křeslo | 9";
+                        default:
+                            return `místo | ${seatNum}`;
+                    }
+                }
+
                 card.innerHTML = `
-            <div class="reservation-header">
-                <div class="movie-thumbnail-container">
-                    <img src="data:image/jpeg;base64,${reservation.image}" alt="${reservation.movie_title || reservation.title}" class="movie-thumbnail">
-                </div>
-                <div class="reservation-info">
-                    <h3 class="movie-title">${reservation.movie_title || reservation.title}</h3>
-                    <div class="movie-details">
-                        <span class="movie-genre">${reservation.genre}</span>
-                        <span class="movie-duration">${reservation.duration} min</span>
-                    </div>
-                    <div class="reservation-date">
-                        <span class="date-icon">📅</span>
-                        <span>${formattedDate}</span>
-                        <span class="time-icon">🕒</span>
-                        <span>${formatTime(reservation.screening_time)}</span>
-                    </div>
-                </div>
+        <div class="reservation-header">
+            <div class="movie-thumbnail-container">
+                <img src="data:image/jpeg;base64,${reservation.image}" alt="${reservation.movie_title || reservation.title}" class="movie-thumbnail">
             </div>
-            <div class="reservation-seats">
-                <h4>Rezervovaná místa</h4>
-                <div class="seats-grid">
-                    <div class="seat">
-                        <span class="seat-number">${reservation.seat_number}</span>
-                  
-                    </div>
+            <div class="reservation-info">
+                <h3 class="movie-title">${reservation.movie_title || reservation.title}</h3>
+                <div class="movie-details">
+                    <span class="movie-genre">${reservation.genre}</span>
+                    <span class="movie-duration">${reservation.duration} min</span>
+                </div>
+                <div class="reservation-date">
+                    <span class="date-icon">📅</span>
+                    <span>${formattedDate}</span>
+                    <span class="time-icon">🕒</span>
+                    <span>${formatTime(reservation.screening_time)}</span>
                 </div>
             </div>
-            <div class="reservation-actions">
-                <a href="reserve.php?id=${reservation.id_screening}" class="view-btn">Zobrazit rezervaci</a>
-                ${!isPast ? `<button class="cancel-btn" data-id="${reservation.id_reservation}">Zrušit rezervaci</button>` : ''}
+        </div>
+        <div class="reservation-seats">
+            <h4>Rezervované místo</h4>
+            <div class="seats-grid">
+                <div class="seat">
+                    <span class="seat-number">${getSeatLabel(reservation.seat_number)}</span>
+                </div>
             </div>
-        `;
+        </div>
+        <div class="reservation-actions">
+            <a href="reserve.php?id=${reservation.id_screening}" class="view-btn">Zobrazit rezervaci</a>
+            ${!isPast ? `<button class="cancel-btn" data-id="${reservation.id_reservation}">Zrušit rezervaci</button>` : ''}
+        </div>
+    `;
 
-        // Přidání event listeneru pro zrušení rezervace
-        const cancelBtn = card.querySelector('.cancel-btn');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', function() {
-                showCancelConfirmation(reservation.id_reservation, reservation.movie_title || reservation.title); 
-            });
-        }
-
-        return card;
+    // Přidání event listeneru pro zrušení rezervace
+    const cancelBtn = card.querySelector('.cancel-btn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            showCancelConfirmation(reservation.id_reservation, reservation.movie_title || reservation.title); 
+        });
     }
+
+    return card;
+}
 
     // Zobrazení potvrzení zrušení
     function showCancelConfirmation(reservationId, movieTitle) {
