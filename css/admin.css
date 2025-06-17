@@ -122,25 +122,48 @@ body {
 }
 
 
-/* Hlavní obsah */
+/* Hlavní obsah - UPRAVIT */
 
-h2 {
-    margin-bottom: 20px;
-    font-size: 24px;
+.main-content {
+    padding: 20px;
+    width: 100%;
+    max-width: none;
+    /* Odstraní omezení šířky */
+}
+
+.main-content.full-width {
+    margin-left: 0;
+    /* Žádný sidebar */
+    width: 100%;
+    padding: 20px 40px;
+    /* Více paddingu po stranách */
+}
+
+
+/* Sekce header - ROZŠÍŘIT */
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.section-header h2 {
+    margin: 0;
+    flex: 1;
 }
 
 .add-btn {
-    display: block;
     background-color: #0cb800;
     color: white;
     border: none;
     border-radius: 5px;
-    padding: 12px;
-    width: 100%;
-    text-align: center;
+    padding: 12px 20px;
     font-size: 16px;
-    margin-bottom: 20px;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 
@@ -201,12 +224,6 @@ h2 {
     }
     .filter-select {
         flex: 1;
-    }
-    .add-btn {
-        width: auto;
-        float: right;
-        padding: 10px 15px;
-        margin-top: -45px;
     }
 }
 
@@ -301,6 +318,9 @@ h2 {
     display: none;
 }
 
+
+/* Desktop tabulka - ROZŠÍŘIT */
+
 @media (min-width: 769px) {
     .movies-cards {
         display: none;
@@ -308,9 +328,13 @@ h2 {
     .movies-table {
         display: block;
         overflow-x: auto;
+        width: 100%;
+        /* Plná šířka */
     }
     .admin-table {
         width: 100%;
+        min-width: 900px;
+        /* Minimální šířka pro čitelnost */
         border-collapse: collapse;
         background-color: rgba(0, 0, 0, 0.2);
     }
@@ -319,12 +343,42 @@ h2 {
         padding: 12px 15px;
         text-align: left;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        white-space: nowrap;
+        /* Zabrání zalamování textu */
     }
     .admin-table th {
         background-color: rgba(0, 0, 0, 0.3);
         color: #ddd;
         font-weight: 600;
         font-size: 0.9rem;
+    }
+    /* Rozšíř konkrétní sloupce */
+    .admin-table th:nth-child(1),
+    /* Název */
+    .admin-table td:nth-child(1) {
+        width: 35%;
+        white-space: normal;
+        /* Povolí zalamování u názvu */
+    }
+    .admin-table th:nth-child(2),
+    /* Žánr */
+    .admin-table td:nth-child(2) {
+        width: 15%;
+    }
+    .admin-table th:nth-child(3),
+    /* Délka */
+    .admin-table td:nth-child(3) {
+        width: 10%;
+    }
+    .admin-table th:nth-child(4),
+    /* Datum a čas */
+    .admin-table td:nth-child(4) {
+        width: 20%;
+    }
+    .admin-table th:nth-child(5),
+    /* Akce */
+    .admin-table td:nth-child(5) {
+        width: 20%;
     }
     .movie-name-with-image {
         display: flex;
@@ -616,4 +670,46 @@ h2 {
 .confirm-btn {
     background-color: #f44336;
     color: white;
+}
+
+
+/* Větší obrazovky - ještě více místa */
+
+@media (min-width: 1200px) {
+    .main-content.full-width {
+        padding: 20px 60px;
+    }
+    .admin-table {
+        min-width: 1100px;
+    }
+}
+
+
+/* Extra velké obrazovky */
+
+@media (min-width: 1600px) {
+    .main-content.full-width {
+        padding: 20px 100px;
+    }
+    .admin-table {
+        min-width: 1300px;
+    }
+}
+
+
+/* Mobile optimalizace */
+
+@media (max-width: 768px) {
+    .main-content.full-width {
+        padding: 15px 20px;
+    }
+    .section-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    .add-btn {
+        width: 100%;
+        max-width: 300px;
+    }
 }
