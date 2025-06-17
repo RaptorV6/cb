@@ -36,6 +36,7 @@
             </div>
             <div class="filter-box">
                 <select id="filter-select">
+        <option value="all" selected>Vše</option>
         <option value="now">Aktuální</option>
         <option value="past">Historie</option>
     </select>

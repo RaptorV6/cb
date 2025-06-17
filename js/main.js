@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (Array.isArray(movies)) {
                         // Store all movies for pagination
                         allMovies = movies;
+                        updateFilterCounts(); // ← PŘIDAT TUTO ŘÁDKU
                         // Update pagination UI
                         setupPagination();
                         // Display first page of movies
@@ -229,8 +230,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         matchesFilter = isPast;
                     } else if (filterValue === 'now') {
                         matchesFilter = !isPast; // Not past means current
+                    } else if (filterValue === 'all') {
+                        matchesFilter = true; // Zobrazí všechny filmy
                     }
-                    // 'all' option would keep matchesFilter as true
 
                     const matchesSearch = title.includes(searchTerm) || genre.includes(searchTerm);
                     return matchesSearch && matchesFilter;
@@ -542,6 +544,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error('Chyba při načítání obrázku:', error);
                     // Zobrazit placeholder chyby
                     imgElement.src = 'https://via.placeholder.com/260x390?text=Chyba+načítání';
+                }
+            }
+
+            // Přidat na konec main.js
+            function updateFilterCounts() {
+                const now = new Date();
+                let totalCount = allMovies.length;
+                let currentCount = 0;
+                let pastCount = 0;
+
+                allMovies.forEach(movie => {
+                    const screeningDateTime = new Date(movie.screening_date + 'T' + movie.screening_time);
+                    const isPast = screeningDateTime < now;
+                    
+                    if (isPast) {
+                        pastCount++;
+                    } else {
+                        currentCount++;
+                    }
+                });
+
+                // Aktualizuj select options
+                const selectElement = document.getElementById('filter-select');
+                if (selectElement) {
+                    selectElement.innerHTML = `
+                        <option value="all">Vše (${totalCount})</option>
+                        <option value="now">Aktuální (${currentCount})</option>
+                        <option value="past">Historie (${pastCount})</option>
+                    `;
                 }
             }
         });
