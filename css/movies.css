@@ -33,20 +33,29 @@
 
 .movie-description-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: -1px;
+    /* ← Trochu přes horní hranu */
+    left: -1px;
+    /* ← Trochu přes levou hranu */
+    right: -1px;
+    /* ← Trochu přes pravou hranu */
+    bottom: -1px;
+    /* ← Trochu přes spodní hranu */
     background-color: rgba(0, 0, 0, 0.85);
     display: flex;
-    padding: 15px;
+    padding: 16px;
+    /* O pixel víc kvůli záporným pozicím */
     align-items: center;
     justify-content: center;
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
     z-index: 5;
-    overflow: auto;
+    overflow: hidden;
+    /* Změněno z auto na hidden */
+    border-radius: 12px;
+    /* Stejný nebo o trochu větší než obrázek */
+    box-sizing: border-box;
 }
 
 .movie-description-overlay p {
@@ -229,6 +238,10 @@
     background-color: rgba(25, 25, 40, 0.7);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 30px rgba(12, 184, 0, 0.2);
     transition: all 0.3s ease;
+    border-radius: 12px;
+    /* Nastaveno na 12px dle požadavku */
+    overflow: hidden;
+    /* Zajistí, že nic nepřetéká */
 }
 
 
@@ -268,7 +281,10 @@
     width: 90px;
     min-width: 90px;
     overflow: hidden;
+    /* DŮLEŽITÉ: Skryje vše co přesahuje */
     position: relative;
+    border-radius: 12px;
+    /* Nastaveno na 12px dle požadavku */
 }
 
 .movie-image img {
