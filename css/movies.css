@@ -101,8 +101,8 @@
 /* Lepší styling pro skončené filmy */
 
 .movie-card.past .movie-description-overlay {
-    background-color: rgba(0, 0, 0, 0.9);
-    /* Tmavší overlay */
+    background-color: rgba(0, 0, 0, 0.85);
+    /* Trochu průhlednější než úplně černá */
 }
 
 .movie-card.past .movie-description-overlay p {
@@ -229,6 +229,26 @@
     background-color: rgba(25, 25, 40, 0.7);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 30px rgba(12, 184, 0, 0.2);
     transition: all 0.3s ease;
+}
+
+
+/* Skončené filmy - zůstanou ztlumené i při hoveru */
+
+.movie-card.past:hover {
+    opacity: 0.7 !important;
+    /* Zůstává ztlumený */
+    transform: translateY(-2px);
+    /* Menší pohyb */
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4), 0 0 15px rgba(100, 100, 100, 0.1);
+    /* Šedivější glow */
+}
+
+
+/* Obrázek skončeného filmu zůstane také ztlumený */
+
+.movie-card.past:hover .movie-image img {
+    filter: grayscale(0.5) brightness(0.8);
+    /* Zůstává ztlumený */
 }
 
 .movie-card:hover {
@@ -375,10 +395,14 @@
 .movie-card.upcoming .movie-image img,
 .movie-card.past .movie-image img {
     filter: grayscale(0.5);
+    transition: filter 0.3s ease;
+    /* Plynulý přechod filtru */
 }
 
 .movie-card.past {
     opacity: 0.7;
+    transition: all 0.3s ease;
+    /* Plynulý přechod */
 }
 
 
