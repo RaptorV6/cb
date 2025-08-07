@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const movieImage = document.getElementById('movie-image');
             const movieIdInput = document.getElementById('movie-id');
             const modalTitle = movieModal.querySelector('.modal-title');
+            const descriptionTextarea = document.getElementById('movie-description');
+            const charCountElement = document.getElementById('char-count');
+            const charCounterElement = document.querySelector('.char-counter');
 
             // State pro řazení
             let sortField = null;
@@ -142,6 +145,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
+                // Validace délky popisu
+                if (description.length > 350) {
+                    alert('Popis filmu je příliš dlouhý. Maximální délka je 350 znaků.');
+                    return;
+                }
+
                 // Rozdělení data a času a validace
                 const parts = screeningDateTime.split('T');
                 if (parts.length !== 2 || !parts[0] || !parts[1]) {
@@ -225,6 +234,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     addGenreTag(this.value);
                     this.value = '';
                 }
+            });
+
+            // Počítání znaků v popisu filmu
+            descriptionTextarea.addEventListener('input', updateCharacterCount);
+            descriptionTextarea.addEventListener('paste', function() {
+                // Delay aby se paste obsah nalézal
+                setTimeout(updateCharacterCount, 10);
             });
 
             function addGenreTag(genre) {
@@ -614,6 +630,28 @@ document.addEventListener('DOMContentLoaded', function() {
             <div>Nahrát obrázek</div>
         `;
         document.getElementById('movie-datetime').value = '';
+        // Reset počítadla znaků
+        updateCharacterCount();
+    }
+
+    // Funkce pro aktualizaci počítadla znaků
+    function updateCharacterCount() {
+        const currentLength = descriptionTextarea.value.length;
+        const maxLength = 350;
+        
+        charCountElement.textContent = currentLength;
+        
+        // Odebrání všech tříd pro reset
+        charCounterElement.classList.remove('warning', 'error');
+        descriptionTextarea.classList.remove('char-limit-exceeded');
+        
+        // Přidání třídy podle stavu
+        if (currentLength > maxLength) {
+            charCounterElement.classList.add('error');
+            descriptionTextarea.classList.add('char-limit-exceeded');
+        } else if (currentLength > maxLength * 0.8) { // 80% limitu
+            charCounterElement.classList.add('warning');
+        }
     }
 
     // Pomocná funkce pro formátování data a času
@@ -658,6 +696,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('movie-title').value = movieData.title || '';
         document.getElementById('movie-duration').value = movieData.duration || '';
         document.getElementById('movie-description').value = movieData.description || '';
+        // Aktualizovat počítadlo znaků po naplnění popisu
+        updateCharacterCount();
 
         // Vyplnit datum a čas
         if (movieData.screening_date) {

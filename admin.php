@@ -150,7 +150,10 @@ requireLogin(true); // Vyžaduje admin práva
                     
                     <div class="form-group">
                         <label class="form-label">Popis filmu</label>
-                        <textarea class="form-input" id="movie-description" rows="3"></textarea>
+                        <textarea class="form-input" id="movie-description" rows="3" maxlength="350" placeholder="Zadejte popis filmu (max. 350 znaků)"></textarea>
+                        <div class="char-counter">
+                            <span id="char-count">0</span>/350 znaků
+                        </div>
                     </div>
                     
                     <div class="form-actions">

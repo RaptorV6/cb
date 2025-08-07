@@ -697,6 +697,29 @@ body {
 }
 
 
+/* Počítadlo znaků pro popis filmu */
+.char-counter {
+    margin-top: 5px;
+    font-size: 0.85rem;
+    color: #ccc;
+    text-align: right;
+    transition: color 0.3s ease;
+}
+
+.char-counter.warning {
+    color: #f39c12; /* Oranžová při blížení se k limitu */
+}
+
+.char-counter.error {
+    color: #e74c3c; /* Červená při překročení limitu */
+}
+
+/* Upozornění pro překročení limitu */
+.form-input.char-limit-exceeded {
+    border-color: #e74c3c;
+    box-shadow: 0 0 5px rgba(231, 76, 60, 0.3);
+}
+
 /* Mobile optimalizace */
 
 @media (max-width: 768px) {

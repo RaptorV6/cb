@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert(message); // Simple error display, you could enhance this
             }
 
-            // Vytvoření karty filmu - UPRAVIT POUZE TUTO FUNKCI
+            // Vytvoření karty filmu - UPRAVENÁ VERZE S VŽDY VIDITELNÝM ČASEM
             function createMovieCard(movie, isPast, isUpcoming) {
                 const card = document.createElement('div');
                 card.className = `movie-card${isPast ? " past" : ""}${isUpcoming ? " upcoming" : ""}`;
@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="movie-short-description">${shortDescription}</div>
                             <div class="movie-time">
                                 <span class="date">${dateRange}</span>
-                                ${!isUpcoming && !isPast ? `<span class="time">${times}</span>` : ''}
+                                <span class="time">${times}</span>
                             </div>
                         </div>
                         <div class="mobile-reserve">
